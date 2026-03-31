@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAG‑VPD · Virtual Procurement Department</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="MAG Virtual Procurement Department — Procurement lifecycle management for luxury real estate construction projects">
+<meta name="author" content="Jahangir Khan, Procurement Manager — MAG Group">
+<meta name="theme-color" content="#C0272D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS & RESET
+═══════════════════════════════════════════ */
+:root {
+  --r: #C0272D; --r2: #8B0000; --r3: rgba(192,39,45,0.12); --r4: rgba(192,39,45,0.06);
+  --g: #1B7A48; --g2: rgba(27,122,72,0.1);
+  --gold: #B8940A; --gold2: rgba(184,148,10,0.12);
+  --blue: #1466B8; --blue2: rgba(20,102,184,0.1);
+  --warn: #C07A0A; --warn2: rgba(192,122,10,0.1);
+  --b0: #090909; --b1: #111111; --b2: #161616; --b3: #1E1E1E;
+  --b4: #242424; --b5: #2E2E2E; --b6: #3A3A3A;
+  --t1: #F4F4F2; --t2: #BEBEBE; --t3: #8A8A8A; --t4: #555555;
+  --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.1);
+  --shadow: 0 1px 3px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3);
+  --shadow2: 0 8px 32px rgba(0,0,0,0.6);
+  --font: 'Outfit', system-ui, sans-serif;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sb: 240px; --tb: 56px;
+  --radius: 6px;
+  --anim: cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;-webkit-font-smoothing:antialiased;}
+body{font-family:var(--font);background:var(--b0);color:var(--t1);min-height:100vh;overflow-x:hidden;}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none;}
+input,select,textarea{font-family:var(--font);}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--b6);border-radius:2px;}
+::selection{background:var(--r3);color:var(--t1);}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+#app{display:flex;height:100vh;overflow:hidden;}
+#sidebar{
+  width:var(--sb);flex-shrink:0;background:var(--b1);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;overflow:hidden;
+  transition:width 0.25s var(--anim);
+  position:relative;z-index:10;
+}
+#sidebar.collapsed{width:52px;}
+#content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#topbar{
+  height:var(--tb);background:var(--b1);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;
+}
+#main{flex:1;overflow-y:auto;background:var(--b0);}
+.view{display:none;animation:fadeIn 0.2s var(--anim);}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+.sb-header{
+  padding:16px 14px;border-bottom:1px solid var(--border);flex-shrink:0;
+  display:flex;align-items:center;gap:10px;min-height:60px;
+}
+.sb-logo{
+  width:28px;height:28px;background:var(--r);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-family:var(--serif);font-size:12px;color:#fff;font-weight:400;letter-spacing:-0.5px;
+}
+.sb-brand{overflow:hidden;white-space:nowrap;}
+.sb-brand .name{font-size:13px;font-weight:600;color:var(--t1);letter-spacing:0.02em;}
+.sb-brand .sub{font-size:9px;color:var(--t4);letter-spacing:0.1em;text-transform:uppercase;margin-top:1px;}
+.sb-toggle{
+  margin-left:auto;width:24px;height:24px;background:transparent;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;color:var(--t4);
+  transition:all 0.15s;flex-shrink:0;
+}
+.sb-toggle:hover{background:var(--b4);color:var(--t2);}
+nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 0;}
+.nav-group-label{
+  padding:16px 16px 4px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--t4);font-weight:600;white-space:nowrap;overflow:hidden;
+  transition:opacity 0.2s;
+}
+#sidebar.collapsed .nav-group-label{opacity:0;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:7px 14px;
+  cursor:pointer;border-radius:0;transition:all 0.12s;
+  border-left:2px solid transparent;white-space:nowrap;
+  position:relative;
+}
+.nav-item:hover{background:rgba(255,255,255,0.04);color:var(--t1);}
+.nav-item.active{
+  background:rgba(192,39,45,0.1);border-left-color:var(--r);color:var(--t1);
+}
+.nav-icon{
+  width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  opacity:0.6;transition:opacity 0.15s;font-size:14px;
+}
+.nav-item.active .nav-icon,.nav-item:hover .nav-icon{opacity:1;}
+.nav-label{font-size:12.5px;font-weight:400;color:var(--t2);overflow:hidden;transition:all 0.2s;}
+.nav-item.active .nav-label{color:var(--t1);font-weight:500;}
+.nav-badge{
+  margin-left:auto;background:var(--r);color:#fff;border-radius:10px;
+  font-size:9px;font-weight:700;padding:1px 6px;min-width:18px;text-align:center;
+  flex-shrink:0;
+}
+#sidebar.collapsed .nav-label,#sidebar.collapsed .nav-badge,#sidebar.collapsed .nav-group-label{display:none;}
+.sb-footer{
+  border-top:1px solid var(--border);padding:12px 14px;flex-shrink:0;
+  display:flex;align-items:center;gap:10px;overflow:hidden;
+}
+.user-avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--r);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;
+}
+.user-info{overflow:hidden;}
+.user-name{font-size:12px;font-weight:500;white-space:nowrap;}
+.user-role{font-size:10px;color:var(--t4);white-space:nowrap;margin-top:1px;}
+#sidebar.collapsed .user-info{display:none;}
+
+/* ═══════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════ */
+.tb-breadcrumb{
+  font-size:11px;color:var(--t3);display:flex;align-items:center;gap:6px;
+}
+.tb-breadcrumb span{color:var(--t2);}
+.tb-breadcrumb .sep{color:var(--t4);}
+.tb-spacer{flex:1;}
+.tb-project-selector{
+  display:flex;align-items:center;gap:8px;padding:5px 10px;
+  background:var(--b3);border:1px solid var(--border2);border-radius:var(--radius);
+  cursor:pointer;transition:all 0.15s;font-size:11.5px;
+}
+.tb-project-selector:hover{border-color:var(--r);}
+.tb-project-dot{width:6px;height:6px;border-radius:50%;background:var(--g);flex-shrink:0;}
+.tb-project-name{color:var(--t1);font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tb-project-chevron{color:var(--t4);font-size:10px;}
+.tb-icon-btn{
+  width:32px;height:32px;border-radius:var(--radius);background:transparent;
+  display:flex;align-items:center;justify-content:center;color:var(--t3);
+  transition:all 0.15s;position:relative;font-size:15px;
+}
+.tb-icon-btn:hover{background:var(--b4);color:var(--t1);}
+.notif-dot{
+  position:absolute;top:6px;right:6px;width:7px;height:7px;
+  border-radius:50%;background:var(--r);border:1.5px solid var(--b1);
+}
+.sync-indicator{
+  display:flex;align-items:center;gap:6px;padding:4px 10px;
+  background:rgba(27,122,72,0.1);border-radius:20px;border:1px solid rgba(27,122,72,0.2);
+  font-size:10px;color:#4CAF83;
+}
+.sync-dot{width:5px;height:5px;border-radius:50%;background:#4CAF83;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4};}
+.tb-user{
+  display:flex;align-items:center;gap:8px;padding:4px 10px;
+  background:var(--b3);border:1px solid var(--border);border-radius:var(--radius);
+  cursor:pointer;font-size:11.5px;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE HEADER
+═══════════════════════════════════════════ */
+.page-header{
+  padding:28px 28px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:16px;
+}
+.ph-left{flex:1;}
+.ph-breadcrumb{font-size:10px;color:var(--t4);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+.ph-title{font-family:var(--serif);font-size:1.7rem;color:var(--t1);line-height:1.2;font-weight:400;}
+.ph-sub{font-size:11.5px;color:var(--t3);margin-top:4px;}
+.ph-actions{display:flex;align-items:center;gap:8px;margin-top:4px;}
+
+/* ═══════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:7px 16px;
+  border-radius:var(--radius);font-size:12px;font-weight:500;
+  transition:all 0.15s;cursor:pointer;border:1px solid transparent;
+}
+.btn-primary{background:var(--r);color:#fff;border-color:var(--r);}
+.btn-primary:hover{background:#d42d33;box-shadow:0 0 0 3px rgba(192,39,45,0.2);}
+.btn-secondary{background:var(--b4);color:var(--t2);border-color:var(--border2);}
+.btn-secondary:hover{background:var(--b5);color:var(--t1);}
+.btn-ghost{background:transparent;color:var(--t3);border-color:var(--border);}
+.btn-ghost:hover{background:var(--b3);color:var(--t1);}
+.btn-success{background:var(--g);color:#fff;}
+.btn-success:hover{background:#22965a;}
+.btn-warn{background:var(--warn);color:#fff;}
+.btn-warn:hover{background:#d4890b;}
+.btn-sm{padding:5px 12px;font-size:11px;}
+.btn-icon{padding:6px 8px;}
+.btn svg,.btn .ico{font-size:12px;}
+
+/* ═══════════════════════════════════════════
+   BADGES & TAGS
+═══════════════════════════════════════════ */
+.badge{
+  display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;
+  font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+}
+.badge-draft{background:var(--b5);color:var(--t4);border:1px solid var(--b6);}
+.badge-submitted{background:var(--blue2);color:#6BA3E0;border:1px solid rgba(20,102,184,0.2);}
+.badge-review{background:var(--gold2);color:#D4A820;border:1px solid rgba(184,148,10,0.2);}
+.badge-approved{background:var(--g2);color:#4CAF83;border:1px solid rgba(27,122,72,0.2);}
+.badge-rejected{background:rgba(192,39,45,0.1);color:#E85C62;border:1px solid rgba(192,39,45,0.2);}
+.badge-awarded{background:rgba(140,60,180,0.12);color:#B07FD4;border:1px solid rgba(140,60,180,0.2);}
+.badge-issued{background:var(--blue2);color:#6BA3E0;border:1px solid rgba(20,102,184,0.2);}
+.badge-closed{background:var(--b5);color:var(--t4);}
+.badge-exception{background:rgba(192,39,45,0.15);color:var(--r);border:1px solid rgba(192,39,45,0.3);}
+.badge-valid{background:var(--g2);color:#4CAF83;border:1px solid rgba(27,122,72,0.2);}
+.badge-pending{background:var(--gold2);color:#D4A820;border:1px solid rgba(184,148,10,0.2);}
+
+/* ═══════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════ */
+.card{
+  background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);
+}
+.card-pad{padding:20px;}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 28px;}
+.kpi-card{
+  background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;position:relative;overflow:hidden;transition:border-color 0.2s;
+}
+.kpi-card:hover{border-color:var(--border2);}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--r);opacity:0;transition:opacity 0.2s;
+}
+.kpi-card:hover::before{opacity:1;}
+.kpi-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t4);margin-bottom:10px;}
+.kpi-value{font-family:var(--serif);font-size:2rem;color:var(--t1);line-height:1;margin-bottom:6px;}
+.kpi-sub{font-size:11px;color:var(--t4);}
+.kpi-delta{font-size:10px;margin-top:6px;}
+.kpi-delta.up{color:var(--g);}
+.kpi-delta.down{color:var(--r);}
+.kpi-delta.warn{color:var(--gold);}
+
+/* ═══════════════════════════════════════════
+   TABLES
+═══════════════════════════════════════════ */
+.table-container{background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.table-toolbar{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.search-box{
+  display:flex;align-items:center;gap:8px;background:var(--b3);border:1px solid var(--border);
+  border-radius:var(--radius);padding:6px 12px;width:240px;
+}
+.search-box input{background:none;border:none;outline:none;font-size:12px;color:var(--t1);width:100%;}
+.search-box input::placeholder{color:var(--t4);}
+.search-ico{color:var(--t4);font-size:12px;}
+.filter-btn{
+  display:flex;align-items:center;gap:6px;padding:6px 10px;
+  background:var(--b3);border:1px solid var(--border);border-radius:var(--radius);
+  font-size:11px;color:var(--t3);cursor:pointer;transition:all 0.15s;
+}
+.filter-btn:hover{border-color:var(--border2);color:var(--t1);}
+table{width:100%;border-collapse:collapse;}
+thead th{
+  padding:10px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--t4);background:var(--b3);border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,0.03);}
+tbody td{padding:12px 14px;font-size:12px;color:var(--t2);vertical-align:middle;}
+tbody td strong{color:var(--t1);font-weight:500;}
+tbody td .mono{font-family:var(--mono);font-size:11px;color:var(--t3);}
+.table-footer{
+  padding:10px 16px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;color:var(--t4);
+}
+
+/* ═══════════════════════════════════════════
+   FORMS
+═══════════════════════════════════════════ */
+.form-section{padding:24px;border-bottom:1px solid var(--border);}
+.form-section:last-child{border-bottom:none;}
+.form-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--t4);margin-bottom:16px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;}
+.form-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.form-row.full{grid-template-columns:1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:11px;font-weight:500;color:var(--t3);letter-spacing:0.02em;}
+.form-label .req{color:var(--r);margin-left:2px;}
+.form-input{
+  background:var(--b3);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:8px 12px;font-size:12.5px;color:var(--t1);outline:none;
+  transition:border-color 0.15s;width:100%;
+}
+.form-input:focus{border-color:var(--r);box-shadow:0 0 0 3px var(--r4);}
+.form-input::placeholder{color:var(--t4);}
+.form-select{
+  appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M5 6L0 0h10z' fill='%23555'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer;
+}
+textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
+.form-hint{font-size:10px;color:var(--t4);}
+.form-error{font-size:10px;color:var(--r);}
+.input-error{border-color:var(--r) !important;}
+
+/* Line Items Table */
+.line-items-table{width:100%;border-collapse:collapse;margin-top:8px;}
+.line-items-table th{
+  padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--t4);font-weight:600;background:var(--b4);border-bottom:1px solid var(--border);text-align:left;
+}
+.line-items-table td{padding:6px 8px;border-bottom:1px solid var(--border);}
+.line-items-table td input{
+  background:transparent;border:1px solid transparent;border-radius:4px;
+  padding:4px 8px;font-size:12px;color:var(--t1);width:100%;font-family:var(--font);
+}
+.line-items-table td input:focus{background:var(--b4);border-color:var(--r);outline:none;}
+.add-line-btn{
+  display:flex;align-items:center;gap:6px;padding:8px 10px;
+  font-size:11px;color:var(--t4);cursor:pointer;transition:color 0.15s;background:none;border:none;
+}
+.add-line-btn:hover{color:var(--r);}
+
+/* Stepper */
+.stepper{display:flex;align-items:center;padding:16px 28px 0;gap:0;}
+.step-item{display:flex;align-items:center;flex:1;}
+.step-circle{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;flex-shrink:0;transition:all 0.2s;
+}
+.step-item.done .step-circle{background:var(--g);color:#fff;}
+.step-item.active .step-circle{background:var(--r);color:#fff;}
+.step-item.todo .step-circle{background:var(--b5);color:var(--t4);border:1px solid var(--border2);}
+.step-label{font-size:10px;margin-left:8px;white-space:nowrap;}
+.step-item.active .step-label{color:var(--t1);font-weight:500;}
+.step-item.done .step-label,.step-item.todo .step-label{color:var(--t4);}
+.step-line{flex:1;height:1px;background:var(--border2);margin:0 6px;}
+.step-item.done .step-line{background:var(--g);}
+
+/* ═══════════════════════════════════════════
+   COMPLIANCE BANNER
+═══════════════════════════════════════════ */
+.compliance-banner{
+  margin:16px 28px;padding:14px 18px;border-radius:var(--radius);
+  display:flex;align-items:flex-start;gap:14px;
+}
+.cb-block{background:rgba(192,39,45,0.08);border:1px solid rgba(192,39,45,0.25);}
+.cb-warn{background:rgba(184,148,10,0.08);border:1px solid rgba(184,148,10,0.25);}
+.cb-ok{background:rgba(27,122,72,0.08);border:1px solid rgba(27,122,72,0.25);}
+.cb-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+.cb-title{font-size:12px;font-weight:600;margin-bottom:3px;}
+.cb-block .cb-title{color:#E85C62;}
+.cb-warn .cb-title{color:#D4A820;}
+.cb-ok .cb-title{color:#4CAF83;}
+.cb-msg{font-size:11.5px;color:var(--t3);line-height:1.5;}
+.cb-actions{margin-top:10px;display:flex;gap:8px;}
+
+/* ═══════════════════════════════════════════
+   VENDOR CARDS (RFQ)
+═══════════════════════════════════════════ */
+.vendor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 28px 20px;}
+.vendor-card{
+  background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;transition:border-color 0.15s;
+}
+.vendor-card:hover{border-color:var(--border2);}
+.vendor-card.selected{border-color:var(--r);background:var(--r4);}
+.vc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.vc-name{font-size:13px;font-weight:600;color:var(--t1);}
+.vc-cat{font-size:10px;color:var(--t4);margin-top:2px;}
+.vc-bid-value{font-family:var(--serif);font-size:1.3rem;color:var(--t1);}
+.vc-bid-label{font-size:10px;color:var(--t4);margin-top:2px;}
+.vc-footer{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:10.5px;color:var(--t4);}
+.vc-score-bar{height:3px;border-radius:2px;margin-top:8px;background:var(--b5);overflow:hidden;}
+.vc-score-fill{height:100%;border-radius:2px;background:var(--r);transition:width 0.6s var(--anim);}
+
+/* ═══════════════════════════════════════════
+   EVALUATION SCORECARD
+═══════════════════════════════════════════ */
+.score-table th,.score-table td{padding:10px 14px;text-align:center;}
+.score-table th:first-child,.score-table td:first-child{text-align:left;}
+.score-input{
+  width:52px;background:var(--b4);border:1px solid var(--border2);border-radius:4px;
+  padding:4px 8px;font-size:12px;color:var(--t1);text-align:center;font-family:var(--mono);
+}
+.score-input:focus{border-color:var(--r);outline:none;}
+.score-total{font-family:var(--mono);font-size:13px;font-weight:600;}
+.score-winner{color:var(--g);}
+.weight-pill{
+  display:inline-block;background:var(--b5);border-radius:10px;
+  padding:2px 8px;font-size:10px;color:var(--t4);margin-left:6px;font-family:var(--mono);
+}
+
+/* ═══════════════════════════════════════════
+   APPROVAL QUEUE
+═══════════════════════════════════════════ */
+.approval-item{
+  background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:8px;overflow:hidden;transition:border-color 0.15s;
+}
+.approval-item:hover{border-color:var(--border2);}
+.ai-header{padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;}
+.ai-priority{width:4px;align-self:stretch;border-radius:2px;flex-shrink:0;}
+.pri-high{background:var(--r);}
+.pri-med{background:var(--gold);}
+.pri-low{background:var(--t4);}
+.ai-info{flex:1;}
+.ai-title{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:3px;}
+.ai-meta{font-size:11px;color:var(--t4);display:flex;align-items:center;gap:12px;}
+.ai-amount{font-family:var(--mono);color:var(--t2);font-size:12px;}
+.ai-sla{font-size:10px;padding:2px 7px;border-radius:10px;}
+.sla-ok{background:var(--g2);color:#4CAF83;}
+.sla-warn{background:var(--gold2);color:#D4A820;}
+.sla-overdue{background:rgba(192,39,45,0.1);color:var(--r);}
+.ai-actions{display:flex;gap:8px;}
+.approval-detail{
+  padding:0 18px 16px 36px;display:none;
+  border-top:1px solid var(--border);padding-top:16px;
+}
+.approval-detail.open{display:block;}
+.approval-desc{font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:12px;}
+.decision-area{display:flex;gap:10px;align-items:flex-start;}
+.decision-input{
+  flex:1;background:var(--b3);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:8px 12px;font-size:12px;color:var(--t1);outline:none;resize:none;height:60px;font-family:var(--font);
+}
+.decision-input:focus{border-color:var(--r);}
+.decision-btns{display:flex;flex-direction:column;gap:6px;}
+
+/* ═══════════════════════════════════════════
+   AUDIT LOG
+═══════════════════════════════════════════ */
+.audit-timeline{padding:16px 28px;}
+.audit-item{display:flex;gap:16px;margin-bottom:20px;}
+.audit-dot-col{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0;}
+.audit-dot{
+  width:10px;height:10px;border-radius:50%;background:var(--r);flex-shrink:0;
+  border:2px solid var(--b0);
+}
+.audit-dot.system{background:var(--blue);}
+.audit-dot.approval{background:var(--g);}
+.audit-dot.rejection{background:var(--r);}
+.audit-dot.document{background:var(--gold);}
+.audit-line{flex:1;width:1px;background:var(--border);margin-top:4px;}
+.audit-body{flex:1;padding-bottom:8px;}
+.audit-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.audit-event{font-family:var(--mono);font-size:10px;background:var(--b4);padding:1px 7px;border-radius:3px;color:var(--t3);}
+.audit-time{font-size:10px;color:var(--t4);}
+.audit-user{font-size:11.5px;color:var(--t2);font-weight:500;}
+.audit-desc{font-size:11.5px;color:var(--t3);line-height:1.5;margin-top:4px;}
+.audit-delta{
+  margin-top:8px;background:var(--b3);border:1px solid var(--border);border-radius:4px;
+  padding:8px 10px;font-family:var(--mono);font-size:10px;color:var(--t3);
+}
+.delta-removed{color:#E85C62;}
+.delta-added{color:#4CAF83;}
+
+/* ═══════════════════════════════════════════
+   DASHBOARD CHARTS
+═══════════════════════════════════════════ */
+.chart-card{background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.chart-title{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;}
+.chart-sub{font-size:10px;color:var(--t4);margin-bottom:16px;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.bar{border-radius:3px 3px 0 0;width:100%;transition:height 0.5s var(--anim);}
+.bar-label{font-size:9px;color:var(--t4);text-align:center;}
+.bar-value{font-size:9px;color:var(--t3);font-family:var(--mono);}
+.mini-list{display:flex;flex-direction:column;gap:8px;}
+.mini-item{display:flex;align-items:center;gap:10px;}
+.mini-label{flex:1;font-size:11.5px;color:var(--t3);}
+.mini-bar-bg{width:120px;height:4px;background:var(--b5);border-radius:2px;overflow:hidden;}
+.mini-bar-fill{height:100%;border-radius:2px;background:var(--r);}
+.mini-val{font-family:var(--mono);font-size:11px;color:var(--t2);min-width:50px;text-align:right;}
+.progress-ring-wrap{position:relative;width:80px;height:80px;}
+.progress-ring-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring-value{font-family:var(--serif);font-size:1.1rem;color:var(--t1);}
+.ring-label{font-size:8px;color:var(--t4);text-align:center;line-height:1.2;margin-top:2px;}
+.dash-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:0 28px 20px;}
+.dash-row.r2{grid-template-columns:2fr 1fr;}
+.recent-activity{background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;}
+.ra-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--t4);margin-bottom:14px;}
+.ra-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);}
+.ra-item:last-child{border-bottom:none;}
+.ra-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ra-content{flex:1;min-width:0;}
+.ra-text{font-size:12px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ra-time{font-size:10px;color:var(--t4);margin-top:2px;}
+
+/* ═══════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════ */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-backdrop.open{display:flex;}
+.modal{
+  background:var(--b2);border:1px solid var(--border2);border-radius:8px;
+  max-width:560px;width:100%;box-shadow:var(--shadow2);
+  animation:modalIn 0.2s var(--anim);
+}
+.modal-lg{max-width:780px;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);}}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:14px;font-weight:600;color:var(--t1);}
+.modal-close{width:28px;height:28px;background:var(--b4);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:14px;}
+.modal-close:hover{background:var(--b5);color:var(--t1);}
+.modal-body{padding:20px;max-height:70vh;overflow-y:auto;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+
+/* ═══════════════════════════════════════════
+   TOAST NOTIFICATIONS
+═══════════════════════════════════════════ */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  background:var(--b3);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:12px 16px;min-width:280px;max-width:380px;box-shadow:var(--shadow);
+  display:flex;align-items:flex-start;gap:12px;
+  animation:toastIn 0.25s var(--anim);
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.toast-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.toast-body{flex:1;}
+.toast-title{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:2px;}
+.toast-msg{font-size:11px;color:var(--t3);}
+.toast.success{border-left:3px solid var(--g);}
+.toast.error{border-left:3px solid var(--r);}
+.toast.warning{border-left:3px solid var(--gold);}
+.toast.info{border-left:3px solid var(--blue);}
+
+/* ═══════════════════════════════════════════
+   VENDOR MASTER
+═══════════════════════════════════════════ */
+.vendor-list-item{
+  display:flex;align-items:center;gap:14px;padding:14px 18px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;
+}
+.vendor-list-item:hover{background:rgba(255,255,255,0.02);}
+.vli-avatar{
+  width:36px;height:36px;border-radius:var(--radius);background:var(--b4);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--t3);flex-shrink:0;
+}
+.vli-name{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:2px;}
+.vli-cat{font-size:11px;color:var(--t4);}
+.vli-rating{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gold);}
+.vli-stats{margin-left:auto;text-align:right;}
+.vli-stat-val{font-family:var(--mono);font-size:12px;color:var(--t2);}
+.vli-stat-label{font-size:10px;color:var(--t4);}
+
+/* ═══════════════════════════════════════════
+   MISC UTILITIES
+═══════════════════════════════════════════ */
+.content-pad{padding:20px 28px;}
+.section-divider{height:1px;background:var(--border);margin:0 28px;}
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 20px;text-align:center;
+}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:0.3;}
+.empty-title{font-size:14px;font-weight:500;color:var(--t3);margin-bottom:4px;}
+.empty-sub{font-size:12px;color:var(--t4);}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:var(--b5);border-radius:3px;font-size:10px;color:var(--t4);}
+.flex{display:flex;}.flex-col{flex-direction:column;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.gap-8{gap:8px;}.gap-12{gap:12px;}
+.text-right{text-align:right;}.font-mono{font-family:var(--mono);}
+.text-red{color:var(--r);}.text-green{color:var(--g);}.text-gold{color:var(--gold);}
+.mt-4{margin-top:4px;}.mt-8{margin-top:8px;}.mt-12{margin-top:12px;}.mt-16{margin-top:16px;}.mt-20{margin-top:20px;}
+.mb-8{margin-bottom:8px;}.mb-12{margin-bottom:12px;}.mb-16{margin-bottom:16px;}
+.pl-28{padding-left:28px;}.pr-28{padding-right:28px;}
+.hidden{display:none!important;}
+hr.thin{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:var(--b4);border:1px solid var(--border);border-radius:12px;font-size:10.5px;color:var(--t3);}
+.info-grid{display:grid;grid-template-columns:160px 1fr;gap:8px 16px;}
+.ig-label{font-size:11px;color:var(--t4);}
+.ig-value{font-size:12px;color:var(--t2);}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE (basic)
+═══════════════════════════════════════════ */
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.vendor-grid{grid-template-columns:1fr 1fr;}.dash-row{grid-template-columns:1fr;}}
+@media(max-width:768px){#sidebar{width:52px;}.nav-label,.nav-badge,.nav-group-label,.sb-brand,.user-info{display:none;}.kpi-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<aside id="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">M</div>
+    <div class="sb-brand">
+      <div class="name">MAG‑VPD</div>
+      <div class="sub">Procurement</div>
+    </div>
+    <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect y="2" width="14" height="1.5" rx="1" fill="currentColor"/><rect y="6.25" width="14" height="1.5" rx="1" fill="currentColor"/><rect y="10.5" width="14" height="1.5" rx="1" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <nav>
+    <div class="nav-group-label">Overview</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <div class="nav-icon">⬛</div>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-group-label">Procurement</div>
+    <div class="nav-item" onclick="navigate('prs')">
+      <div class="nav-icon">📋</div>
+      <span class="nav-label">Purchase Requisitions</span>
+      <span class="nav-badge">3</span>
+    </div>
+    <div class="nav-item" onclick="navigate('rfqs')">
+      <div class="nav-icon">📨</div>
+      <span class="nav-label">RFQ / RFP</span>
+    </div>
+    <div class="nav-item" onclick="navigate('bids')">
+      <div class="nav-icon">💰</div>
+      <span class="nav-label">Bids & Evaluation</span>
+    </div>
+    <div class="nav-item" onclick="navigate('approvals')">
+      <div class="nav-icon">✅</div>
+      <span class="nav-label">Approvals</span>
+      <span class="nav-badge">5</span>
+    </div>
+    <div class="nav-group-label">Technical</div>
+    <div class="nav-item" onclick="navigate('submittals')">
+      <div class="nav-icon">🔬</div>
+      <span class="nav-label">Submittals</span>
+    </div>
+    <div class="nav-group-label">Master Data</div>
+    <div class="nav-item" onclick="navigate('vendors')">
+      <div class="nav-icon">🏢</div>
+      <span class="nav-label">Vendor Master</span>
+    </div>
+    <div class="nav-item" onclick="navigate('projects')">
+      <div class="nav-icon">🏗</div>
+      <span class="nav-label">Projects</span>
+    </div>
+    <div class="nav-group-label">Governance</div>
+    <div class="nav-item" onclick="navigate('audit')">
+      <div class="nav-icon">🔍</div>
+      <span class="nav-label">Audit Log</span>
+    </div>
+    <div class="nav-item" onclick="navigate('reports')">
+      <div class="nav-icon">📊</div>
+      <span class="nav-label">Reports</span>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="user-avatar">JK</div>
+    <div class="user-info">
+      <div class="user-name">Jahangir Khan</div>
+      <div class="user-role">Procurement Manager</div>
+    </div>
+  </div>
+  <div style="padding:4px 14px 8px;font-size:9px;color:var(--t4);letter-spacing:0.08em;text-align:center;border-top:1px solid var(--border);">MAG-VPD v2.4.1</div>
+</aside>
+
+<!-- ═══════════════════ MAIN AREA ═══════════════════ -->
+<div id="content-area">
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <div class="tb-breadcrumb" id="breadcrumb">
+      <span>Dashboard</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-project-selector" onclick="showProjectModal()">
+      <div class="tb-project-dot"></div>
+      <span class="tb-project-name">Keturah Reserve — Phase 2</span>
+      <span class="tb-project-chevron">▾</span>
+    </div>
+    <div class="sync-indicator" title="Last sync: SharePoint & MS Teams — 31 Mar 2026 09:45 AM GST" onclick="showToast('success','Data Sync','SharePoint document library synced 2 min ago. MS Teams channels synced 5 min ago. Oracle ERP synced 12 min ago.')">
+      <div class="sync-dot"></div>
+      <span>Synced · SP / Teams</span>
+    </div>
+    <button class="tb-icon-btn" onclick="showNotifications()" title="Notifications">
+      🔔
+      <div class="notif-dot"></div>
+    </button>
+    <button class="tb-icon-btn" title="Help">❓</button>
+    <div class="tb-user">
+      <div class="user-avatar" style="width:22px;height:22px;font-size:9px;">JK</div>
+      <span style="font-size:11.5px;color:var(--t2);">Jahangir Khan</span>
+      <span style="color:var(--t4);font-size:10px;">▾</span>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main id="main">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Overview</div>
+          <div class="ph-title">Executive Dashboard</div>
+          <div class="ph-sub">Keturah Reserve Phase 2 · As of today, 30 March 2026</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-secondary btn-sm" onclick="exportDashboardPDF()">⬇ Export PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="navigate('prs','new')">+ New PR</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Active PRs</div>
+          <div class="kpi-value">24</div>
+          <div class="kpi-sub">Across 3 projects</div>
+          <div class="kpi-delta up">↑ 3 from last week</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Open RFQs</div>
+          <div class="kpi-value">11</div>
+          <div class="kpi-sub">4 closing this week</div>
+          <div class="kpi-delta warn">⚠ 2 compliance issues</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Committed Spend</div>
+          <div class="kpi-value">47.2M</div>
+          <div class="kpi-sub">AED · YTD 2026</div>
+          <div class="kpi-delta up">78.6% of budget used</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Pending Approvals</div>
+          <div class="kpi-value">5</div>
+          <div class="kpi-sub">2 overdue SLA</div>
+          <div class="kpi-delta down">↓ Needs attention</div>
+        </div>
+      </div>
+
+      <div class="dash-row">
+        <div class="chart-card">
+          <div class="chart-title">Spend by Category</div>
+          <div class="chart-sub">AED millions · 2026 YTD</div>
+          <div class="bar-chart" id="spend-chart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">3-Quote Compliance</div>
+          <div class="chart-sub">Current month</div>
+          <div style="display:flex;align-items:center;gap:20px;margin-top:8px;">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--b5)" stroke-width="7"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--g)" stroke-width="7"
+                stroke-dasharray="176" stroke-dashoffset="30" stroke-linecap="round"
+                transform="rotate(-90 40 40)"/>
+            </svg>
+            <div>
+              <div style="font-family:var(--serif);font-size:1.8rem;color:var(--t1);">83%</div>
+              <div style="font-size:11px;color:var(--t4);margin-top:2px;">Compliant RFQs</div>
+              <div style="font-size:11px;color:var(--r);margin-top:6px;">2 exceptions active</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Avg Cycle Time</div>
+          <div class="chart-sub">Days per stage</div>
+          <div class="mini-list" style="margin-top:8px;">
+            <div class="mini-item"><span class="mini-label">PR Approval</span><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:40%;background:var(--g);"></div></div><span class="mini-val">3.2 d</span></div>
+            <div class="mini-item"><span class="mini-label">RFQ Period</span><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:90%;background:var(--gold);"></div></div><span class="mini-val">14.1 d</span></div>
+            <div class="mini-item"><span class="mini-label">Evaluation</span><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:50%;background:var(--r);"></div></div><span class="mini-val">6.8 d</span></div>
+            <div class="mini-item"><span class="mini-label">Award Approval</span><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:30%;background:var(--blue);"></div></div><span class="mini-val">4.1 d</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-row r2" style="grid-template-columns:2fr 1fr;">
+        <div class="recent-activity">
+          <div class="ra-title">Recent Activity</div>
+          <div class="ra-item"><div class="ra-dot" style="background:var(--g)"></div><div class="ra-content"><div class="ra-text">RFQ-2026-0031 awarded to Gulf Stone Trading — AED 2.4M</div><div class="ra-time">15 min ago · Jahangir Khan</div></div></div>
+          <div class="ra-item"><div class="ra-dot" style="background:var(--r)"></div><div class="ra-content"><div class="ra-text">PR-2026-0047 rejected — "Budget code mismatch — requires revision"</div><div class="ra-time">1h ago · Omar Farouk</div></div></div>
+          <div class="ra-item"><div class="ra-dot" style="background:var(--gold)"></div><div class="ra-content"><div class="ra-text">Exception request submitted for RFQ-2026-0034 — only 2 valid quotes</div><div class="ra-time">2h ago · Khalid Al Mansoori</div></div></div>
+          <div class="ra-item"><div class="ra-dot" style="background:var(--blue)"></div><div class="ra-content"><div class="ra-text">Technical submittal approved — Porcelain Tile TDS (Vendor: Emirates Ceramics)</div><div class="ra-time">3h ago · Priya Sharma</div></div></div>
+          <div class="ra-item"><div class="ra-dot" style="background:var(--g)"></div><div class="ra-content"><div class="ra-text">PO-2026-0019 created in Oracle ERP — Marble Supply Package</div><div class="ra-time">Yesterday · System</div></div></div>
+          <div class="ra-item"><div class="ra-dot" style="background:var(--r)"></div><div class="ra-content"><div class="ra-text">New PR submitted — Lighting Package Level 3–5 — AED 850K est.</div><div class="ra-time">Yesterday · Sarah Johnson</div></div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Package Status</div>
+          <div class="chart-sub">Keturah Reserve Ph.2</div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;"><span style="color:var(--t3);">Marble / Stone</span><span class="badge badge-awarded">Awarded</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;"><span style="color:var(--t3);">MEP — HVAC</span><span class="badge badge-review">Evaluation</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;"><span style="color:var(--t3);">Lighting Pkg</span><span class="badge badge-submitted">RFQ Issued</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;"><span style="color:var(--t3);">FF&E Furniture</span><span class="badge badge-submitted">Bids Open</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;"><span style="color:var(--t3);">Joinery Works</span><span class="badge badge-draft">PR Draft</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;"><span style="color:var(--t3);">Landscape</span><span class="badge badge-draft">Not Started</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PURCHASE REQUISITIONS ═══ -->
+    <div class="view" id="view-prs">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Procurement</div>
+          <div class="ph-title">Purchase Requisitions</div>
+          <div class="ph-sub">24 total · 3 pending your action</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-secondary btn-sm" onclick="exportPRsCSV()">⬇ Export</button>
+          <button class="btn btn-primary btn-sm" onclick="navigate('new-pr')">+ New PR</button>
+        </div>
+      </div>
+      <div class="content-pad">
+        <div class="table-container">
+          <div class="table-toolbar">
+            <div class="search-box">
+              <span class="search-ico">🔍</span>
+              <input type="text" placeholder="Search PRs…" oninput="filterTable(this,'pr-table')">
+            </div>
+            <div class="filter-btn" onclick="filterStatus('pr-table','all')">All</div>
+            <div class="filter-btn" onclick="filterStatus('pr-table','submitted')">Submitted</div>
+            <div class="filter-btn" onclick="filterStatus('pr-table','approved')">Approved</div>
+            <div class="filter-btn" onclick="filterStatus('pr-table','rejected')">Rejected</div>
+            <div class="tb-spacer"></div>
+            <div class="filter-btn">⚙ Columns</div>
+          </div>
+          <table id="pr-table">
+            <thead><tr>
+              <th>PR Number</th><th>Title</th><th>Project · Package</th><th>Requester</th>
+              <th>Est. Value (AED)</th><th>Status</th><th>Submitted</th><th>SLA</th><th></th>
+            </tr></thead>
+            <tbody id="pr-tbody"></tbody>
+          </table>
+          <div class="table-footer"><span>Showing 12 of 24 records</span><div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm">← Prev</button><button class="btn btn-ghost btn-sm">Next →</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ NEW PR FORM ═══ -->
+    <div class="view" id="view-new-pr">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Procurement › Purchase Requisitions</div>
+          <div class="ph-title">New Purchase Requisition</div>
+          <div class="ph-sub">Draft auto-saved · <span id="draft-status" style="color:var(--t4);">Saving…</span></div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-ghost btn-sm" onclick="navigate('prs')">✕ Cancel</button>
+          <button class="btn btn-secondary btn-sm" onclick="savePrDraft()">💾 Save Draft</button>
+          <button class="btn btn-primary btn-sm" onclick="submitPr()">Submit for Approval →</button>
+        </div>
+      </div>
+      <div class="stepper" id="pr-stepper">
+        <div class="step-item active"><div class="step-circle">1</div><span class="step-label">Details</span><div class="step-line"></div></div>
+        <div class="step-item todo"><div class="step-circle">2</div><span class="step-label">Line Items</span><div class="step-line"></div></div>
+        <div class="step-item todo"><div class="step-circle">3</div><span class="step-label">Documents</span><div class="step-line"></div></div>
+        <div class="step-item todo"><div class="step-circle">4</div><span class="step-label">Review & Submit</span></div>
+      </div>
+      <div style="max-width:820px;margin:20px 28px;">
+        <div class="card">
+          <div class="form-section">
+            <div class="form-section-title">Requisition Details</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Project <span class="req">*</span></label>
+                <select class="form-input form-select" id="pr-project">
+                  <option value="">— Select project —</option>
+                  <option value="ktr2" selected>Keturah Reserve — Phase 2</option>
+                  <option value="eye">MAG Eye Tower</option>
+                  <option value="ktr1">Keturah Reserve Villas</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Package <span class="req">*</span></label>
+                <select class="form-input form-select" id="pr-package">
+                  <option value="">— Select package —</option>
+                  <option value="lighting">Lighting Package (KTR2-E03)</option>
+                  <option value="marble">Marble & Stone (KTR2-F01)</option>
+                  <option value="joinery">Joinery Works (KTR2-J01)</option>
+                  <option value="mep">MEP — HVAC (KTR2-M01)</option>
+                  <option value="ffe">FF&E Furniture (KTR2-D01)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Requisition Title <span class="req">*</span></label>
+                <input type="text" class="form-input" id="pr-title" placeholder="e.g. Marble Flooring — Level 3–5 Lobbies" oninput="triggerAutosave()">
+              </div>
+            </div>
+            <div class="form-row cols-3">
+              <div class="form-group">
+                <label class="form-label">Estimated Value (AED) <span class="req">*</span></label>
+                <input type="number" class="form-input" id="pr-value" placeholder="0.00" oninput="updateApprovalBand()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Urgency</label>
+                <select class="form-input form-select" id="pr-urgency">
+                  <option value="routine">Routine</option>
+                  <option value="urgent">Urgent</option>
+                  <option value="emergency">Emergency</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Required Date</label>
+                <input type="date" class="form-input" id="pr-date">
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Justification / Business Case <span class="req">*</span></label>
+                <textarea class="form-input" id="pr-justification" placeholder="Explain why this procurement is needed and the business impact…" oninput="triggerAutosave()"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Approval Band Preview</div>
+            <div id="approval-band-preview" style="padding:10px 14px;background:var(--b3);border-radius:var(--radius);border:1px solid var(--border);font-size:12px;color:var(--t3);">
+              Enter an estimated value above to see the required approval chain.
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Line Items</div>
+            <table class="line-items-table" id="line-items-table">
+              <thead><tr><th style="width:40%">Description</th><th>Unit</th><th>Quantity</th><th>Est. Unit Rate (AED)</th><th>Total (AED)</th><th></th></tr></thead>
+              <tbody id="line-items-body">
+                <tr>
+                  <td><input type="text" placeholder="Item description…" oninput="calcLineTotal(this)"></td>
+                  <td><input type="text" placeholder="m²" style="width:60px;"></td>
+                  <td><input type="number" placeholder="0" style="width:70px;" oninput="calcLineTotal(this)"></td>
+                  <td><input type="number" placeholder="0.00" style="width:100px;" oninput="calcLineTotal(this)"></td>
+                  <td><input type="text" readonly style="width:100px;color:var(--t3);" placeholder="0.00" class="line-total"></td>
+                  <td><button onclick="removeLineItem(this)" style="background:none;border:none;color:var(--t4);cursor:pointer;font-size:14px;">✕</button></td>
+                </tr>
+              </tbody>
+            </table>
+            <button class="add-line-btn" onclick="addLineItem()">+ Add Line Item</button>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Supporting Documents</div>
+            <div id="doc-upload-area" style="border:2px dashed var(--border2);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:border-color 0.15s;" onclick="showToast('info','SharePoint','Document will be uploaded to SharePoint KTR2/PRDocuments with mandatory metadata')">
+              <div style="font-size:1.5rem;margin-bottom:8px;">📎</div>
+              <div style="font-size:13px;color:var(--t2);margin-bottom:4px;">Drop files here or click to browse</div>
+              <div style="font-size:11px;color:var(--t4);">Uploaded to SharePoint with mandatory metadata tagging · PDF, XLSX, DWG, JPG up to 50MB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RFQs ═══ -->
+    <div class="view" id="view-rfqs">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Procurement</div>
+          <div class="ph-title">RFQ / RFP Manager</div>
+          <div class="ph-sub">11 active · 4 closing this week</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-secondary btn-sm" onclick="exportRFQsCSV()">⬇ Export</button>
+          <button class="btn btn-primary btn-sm" onclick="showCreateRfqModal()">+ New RFQ</button>
+        </div>
+      </div>
+      <div class="content-pad">
+        <div class="table-container">
+          <div class="table-toolbar">
+            <div class="search-box"><span class="search-ico">🔍</span><input type="text" placeholder="Search RFQs…"></div>
+            <div class="filter-btn">All</div>
+            <div class="filter-btn">Issued</div>
+            <div class="filter-btn">Draft</div>
+            <div class="filter-btn" style="color:var(--r);border-color:rgba(192,39,45,0.3);">⚠ Compliance Issues</div>
+          </div>
+          <table>
+            <thead><tr><th>RFQ Number</th><th>Package</th><th>Vendors Invited</th><th>Bids Received</th><th>3-Quote</th><th>Deadline</th><th>Status</th><th></th></tr></thead>
+            <tbody id="rfq-tbody"></tbody>
+          </table>
+          <div class="table-footer"><span>Showing 11 of 11 records</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RFQ DETAIL ═══ -->
+    <div class="view" id="view-rfq-detail">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Procurement › RFQ / RFP</div>
+          <div class="ph-title">RFQ-2026-0034 · MEP — HVAC Package</div>
+          <div class="ph-sub">Keturah Reserve Phase 2 · KTR2-M01 · Deadline: 15 April 2026</div>
+        </div>
+        <div class="ph-actions">
+          <span class="badge badge-issued" style="font-size:11px;padding:4px 10px;">Issued</span>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('rfqs')">← Back</button>
+          <button class="btn btn-secondary btn-sm">📄 View RFQ Pack</button>
+          <button class="btn btn-primary btn-sm" onclick="navigate('bids')">Go to Evaluation →</button>
+        </div>
+      </div>
+
+      <!-- 3-QUOTE COMPLIANCE BANNER — active example -->
+      <div class="compliance-banner cb-block">
+        <div class="cb-icon">🚫</div>
+        <div style="flex:1">
+          <div class="cb-title">3-Quotation Rule — Award Blocked</div>
+          <div class="cb-msg">This RFQ has <strong>2 valid quotes</strong> received. A minimum of 3 is required before proceeding to award. You must either obtain a 3rd quote, or submit an approved Exception Request.</div>
+          <div class="cb-actions">
+            <button class="btn btn-secondary btn-sm" onclick="showExceptionModal()">📋 Request Exception</button>
+            <button class="btn btn-ghost btn-sm" onclick="showAddBidModal()">+ Enter 3rd Quote</button>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-family:var(--serif);font-size:2rem;color:var(--r);">2<span style="font-size:1rem;color:var(--t4);">/3</span></div>
+          <div style="font-size:10px;color:var(--t4);">Valid Quotes</div>
+        </div>
+      </div>
+
+      <div style="padding:0 28px 20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="card card-pad">
+            <div style="font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">RFQ Information</div>
+            <div class="info-grid">
+              <span class="ig-label">PR Reference</span><span class="ig-value mono" style="font-family:var(--mono);">MAG-PR-2026-0041</span>
+              <span class="ig-label">Package Code</span><span class="ig-value mono" style="font-family:var(--mono);">KTR2-M01</span>
+              <span class="ig-label">Category</span><span class="ig-value">MEP — HVAC</span>
+              <span class="ig-label">Budget (AED)</span><span class="ig-value text-green" style="font-family:var(--mono);">4,200,000</span>
+              <span class="ig-label">Issued By</span><span class="ig-value">Khalid Al Mansoori</span>
+              <span class="ig-label">Issued Date</span><span class="ig-value">12 March 2026</span>
+              <span class="ig-label">Deadline</span><span class="ig-value text-red">15 April 2026</span>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div style="font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Vendor Invitations</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+                <span style="color:var(--t2);">Al Noor MEP Contracting</span>
+                <span class="badge badge-valid">Quote Received ✓</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+                <span style="color:var(--t2);">Emitac Building Services</span>
+                <span class="badge badge-valid">Quote Received ✓</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+                <span style="color:var(--t2);">Green Energy Solutions LLC</span>
+                <span class="badge badge-pending">Awaiting Quote</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+                <span style="color:var(--t2);">Gulf Climate Systems</span>
+                <span class="badge badge-draft">Declined</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-toolbar" style="border-radius:var(--radius) var(--radius) 0 0;">
+            <span style="font-size:12px;font-weight:600;color:var(--t2);">Received Quotations</span>
+            <div class="tb-spacer"></div>
+            <button class="btn btn-secondary btn-sm" onclick="showAddBidModal()">+ Enter Quote Manually</button>
+          </div>
+          <table>
+            <thead><tr><th>Vendor</th><th>Total (AED)</th><th>Validity</th><th>Technical Score</th><th>Valid for 3Q</th><th>Submitted</th><th></th></tr></thead>
+            <tbody>
+              <tr onclick="navigate('bids')">
+                <td><strong>Al Noor MEP Contracting</strong><div class="mono">VND-0041</div></td>
+                <td><strong style="font-family:var(--mono);">3,820,000</strong></td>
+                <td>60 days</td>
+                <td><div class="vc-score-bar" style="width:80px;margin:0;"><div class="vc-score-fill" style="width:78%;background:var(--g);"></div></div><span style="font-size:11px;color:var(--g);margin-left:6px;">78/100</span></td>
+                <td><span class="badge badge-valid">✓ Valid</span></td>
+                <td style="font-size:11px;color:var(--t4);">20 Mar 2026</td>
+                <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();navigate('bids')">View →</button></td>
+              </tr>
+              <tr onclick="navigate('bids')">
+                <td><strong>Emitac Building Services</strong><div class="mono">VND-0018</div></td>
+                <td><strong style="font-family:var(--mono);">4,150,000</strong></td>
+                <td>45 days</td>
+                <td><div class="vc-score-bar" style="width:80px;margin:0;"><div class="vc-score-fill" style="width:85%;background:var(--g);"></div></div><span style="font-size:11px;color:var(--g);margin-left:6px;">85/100</span></td>
+                <td><span class="badge badge-valid">✓ Valid</span></td>
+                <td style="font-size:11px;color:var(--t4);">22 Mar 2026</td>
+                <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();navigate('bids')">View →</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-footer"><span style="color:var(--r);font-size:11px;">⚠ Only 2 of 3 required quotes received. Award blocked.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BIDS & EVALUATION ═══ -->
+    <div class="view" id="view-bids">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Procurement › Bids & Evaluation</div>
+          <div class="ph-title">Bid Comparison & Scoring</div>
+          <div class="ph-sub">RFQ-2026-0031 · Marble & Stone Supply Package · Keturah Reserve Phase 2</div>
+        </div>
+        <div class="ph-actions">
+          <span class="badge badge-review" style="font-size:11px;padding:4px 10px;">Evaluation</span>
+          <button class="btn btn-secondary btn-sm" onclick="exportBidsCSV()">⬇ Export Comparison</button>
+          <button class="btn btn-primary btn-sm" onclick="generateMemo()">📄 Generate Memo →</button>
+        </div>
+      </div>
+
+      <!-- Compliance OK banner -->
+      <div class="compliance-banner cb-ok">
+        <div class="cb-icon">✅</div>
+        <div>
+          <div class="cb-title">3-Quotation Rule Satisfied</div>
+          <div class="cb-msg">3 valid quotes received from invited vendors. This RFQ may proceed to award recommendation.</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-family:var(--serif);font-size:2rem;color:var(--g);">3<span style="font-size:1rem;color:var(--t4);">/3</span></div>
+          <div style="font-size:10px;color:var(--t4);">Valid Quotes</div>
+        </div>
+      </div>
+
+      <div style="padding:0 28px 20px;">
+        <!-- Commercial Comparison -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="table-toolbar"><span style="font-size:12px;font-weight:600;color:var(--t2);">Commercial Comparison</span><div class="tb-spacer"></div><span style="font-size:11px;color:var(--t4);">Weight: 60%</span></div>
+          <table>
+            <thead><tr><th>Line Item</th><th>Unit</th><th>Qty</th><th>Gulf Stone Trading<br><span style="font-size:9px;font-weight:400;color:var(--t4);">AED / Total</span></th><th>Emirates Marble LLC<br><span style="font-size:9px;font-weight:400;color:var(--t4);">AED / Total</span></th><th>Stone Kingdom FZCO<br><span style="font-size:9px;font-weight:400;color:var(--t4);">AED / Total</span></th></tr></thead>
+            <tbody>
+              <tr><td><strong>Calacatta Oro 600×600</strong></td><td>m²</td><td>1,200</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">485</span><br><span style="color:var(--g);font-weight:600;">582,000</span></td><td style="font-family:var(--mono);"><span style="color:var(--t4);">520</span><br>624,000</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">510</span><br>612,000</td></tr>
+              <tr><td><strong>Travertine Wall Cladding</strong></td><td>m²</td><td>800</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">420</span><br><span style="color:var(--g);font-weight:600;">336,000</span></td><td style="font-family:var(--mono);"><span style="color:var(--t4);">445</span><br>356,000</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">410</span><br><span style="color:var(--g);font-weight:600;">328,000</span></td></tr>
+              <tr><td><strong>Marble Skirting 100mm</strong></td><td>lm</td><td>2,400</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">85</span><br>204,000</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">78</span><br><span style="color:var(--g);font-weight:600;">187,200</span></td><td style="font-family:var(--mono);"><span style="color:var(--t4);">82</span><br>196,800</td></tr>
+              <tr><td><strong>Supply &amp; Fix (Labour)</strong></td><td>m²</td><td>2,000</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">180</span><br>360,000</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">195</span><br>390,000</td><td style="font-family:var(--mono);"><span style="color:var(--t4);">175</span><br><span style="color:var(--g);font-weight:600;">350,000</span></td></tr>
+              <tr style="background:var(--b3);">
+                <td colspan="3"><strong>TOTAL (AED)</strong></td>
+                <td style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--g);">1,482,000</td>
+                <td style="font-family:var(--mono);font-size:14px;font-weight:700;">1,557,200</td>
+                <td style="font-family:var(--mono);font-size:14px;font-weight:700;">1,486,800</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Technical Scorecard -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="table-toolbar"><span style="font-size:12px;font-weight:600;color:var(--t2);">Technical Evaluation Scorecard</span><div class="tb-spacer"></div><span style="font-size:11px;color:var(--t4);">Weight: 40%</span></div>
+          <table class="score-table">
+            <thead><tr>
+              <th style="text-align:left;">Criterion</th><th>Weight</th>
+              <th>Gulf Stone<br>Trading</th><th>Emirates<br>Marble</th><th>Stone Kingdom<br>FZCO</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>Material Quality / Samples</td><td><span class="weight-pill">30%</span></td><td><input type="number" class="score-input" value="88" max="100" min="0" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="92" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="80" max="100" oninput="recalcScores()"></td></tr>
+              <tr><td>Delivery Programme</td><td><span class="weight-pill">25%</span></td><td><input type="number" class="score-input" value="85" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="78" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="90" max="100" oninput="recalcScores()"></td></tr>
+              <tr><td>Warranty & Guarantee</td><td><span class="weight-pill">20%</span></td><td><input type="number" class="score-input" value="90" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="85" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="88" max="100" oninput="recalcScores()"></td></tr>
+              <tr><td>Local Content / DEWA Compliance</td><td><span class="weight-pill">15%</span></td><td><input type="number" class="score-input" value="80" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="95" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="75" max="100" oninput="recalcScores()"></td></tr>
+              <tr><td>Financial Stability</td><td><span class="weight-pill">10%</span></td><td><input type="number" class="score-input" value="85" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="88" max="100" oninput="recalcScores()"></td><td><input type="number" class="score-input" value="82" max="100" oninput="recalcScores()"></td></tr>
+              <tr style="background:var(--b3);"><td colspan="2"><strong>Technical Score (Weighted)</strong></td>
+                <td class="score-total" id="score-v1">86.3</td>
+                <td class="score-total" id="score-v2">87.1</td>
+                <td class="score-total" id="score-v3">83.4</td>
+              </tr>
+              <tr style="background:rgba(27,122,72,0.05);"><td colspan="2"><strong>Combined Score (60% Commercial + 40% Technical)</strong></td>
+                <td class="score-total score-winner" id="combined-v1">89.1 ★</td>
+                <td class="score-total" id="combined-v2">87.4</td>
+                <td class="score-total" id="combined-v3">86.2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Recommendation -->
+        <div class="card card-pad" style="border-color:rgba(27,122,72,0.3);background:rgba(27,122,72,0.04);">
+          <div style="display:flex;align-items:flex-start;gap:16px;">
+            <div style="flex:1;">
+              <div style="font-size:11px;color:var(--g);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:8px;">Recommended Award</div>
+              <div style="font-family:var(--serif);font-size:1.4rem;color:var(--t1);margin-bottom:4px;">Gulf Stone Trading LLC</div>
+              <div style="font-size:12px;color:var(--t3);">Lowest compliant commercial bid at AED 1,482,000 with strong technical score of 86.3. Combined weighted score: <strong style="color:var(--g);">89.1/100</strong>. Ranked #1 of 3 evaluated vendors.</div>
+              <div style="margin-top:12px;">
+                <label class="form-label">Award Rationale (required for memo)</label>
+                <textarea class="form-input" style="margin-top:4px;height:70px;" placeholder="Gulf Stone Trading offers the best value considering both commercial and technical criteria. Their sample quality was excellent and they have successfully delivered on 3 previous MAG projects…">Gulf Stone Trading offers the best value considering both commercial and technical criteria. Material sample quality scored 88/100 in QA review, competitive pricing 5.1% below median, and proven delivery track record on KTR Phase 1.</textarea>
+              </div>
+            </div>
+            <div style="text-align:center;padding:16px 20px;background:var(--b2);border:1px solid var(--border);border-radius:var(--radius);flex-shrink:0;">
+              <div style="font-size:10px;color:var(--t4);margin-bottom:4px;">Award Value</div>
+              <div style="font-family:var(--serif);font-size:1.6rem;color:var(--g);">AED 1.48M</div>
+              <div style="font-size:10px;color:var(--g);margin-top:4px;">Savings vs budget: 29.6%</div>
+              <div style="margin-top:12px;font-size:10px;color:var(--t4);">Requires</div>
+              <div style="font-size:11px;color:var(--t2);margin-top:2px;">Finance + GM approval</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ APPROVALS ═══ -->
+    <div class="view" id="view-approvals">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Governance</div>
+          <div class="ph-title">Approval Queue</div>
+          <div class="ph-sub">5 items pending · 2 overdue SLA</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-secondary btn-sm" onclick="showToast('info','Delegation','Delegation settings coming in next release')">👤 Delegate</button>
+          <button class="btn btn-ghost btn-sm">📋 History</button>
+        </div>
+      </div>
+      <div class="content-pad" id="approval-list">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- ═══ SUBMITTALS ═══ -->
+    <div class="view" id="view-submittals">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Technical</div>
+          <div class="ph-title">Technical Submittals</div>
+          <div class="ph-sub">12 active submittals · 3 awaiting review</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-primary btn-sm" onclick="showToast('info','Submittal','New submittal wizard opening…')">+ New Submittal</button>
+        </div>
+      </div>
+      <div class="content-pad">
+        <div class="table-container">
+          <div class="table-toolbar">
+            <div class="search-box"><span class="search-ico">🔍</span><input type="text" placeholder="Search submittals…"></div>
+          </div>
+          <table id="submittals-table">
+            <thead><tr><th>Ref #</th><th>Description</th><th>Vendor</th><th>Category</th><th>Submitted</th><th>Reviewer</th><th>Status</th><th></th></tr></thead>
+            <tbody id="submittals-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VENDORS ═══ -->
+    <div class="view" id="view-vendors">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Master Data</div>
+          <div class="ph-title">Vendor Master</div>
+          <div class="ph-sub">47 active vendors · 8 categories</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-secondary btn-sm" onclick="exportVendorsCSV()">⬇ Export</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('info','Vendor','Add vendor form opening…')">+ Add Vendor</button>
+        </div>
+      </div>
+      <div class="content-pad">
+        <div class="table-container">
+          <div class="table-toolbar">
+            <div class="search-box"><span class="search-ico">🔍</span><input type="text" placeholder="Search vendors…" oninput="filterVendors(this.value)"></div>
+            <div class="filter-btn">All</div>
+            <div class="filter-btn">Marble/Stone</div>
+            <div class="filter-btn">MEP</div>
+            <div class="filter-btn">Lighting</div>
+            <div class="filter-btn">FF&E</div>
+          </div>
+          <div id="vendor-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PROJECTS ═══ -->
+    <div class="view" id="view-projects">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Master Data</div>
+          <div class="ph-title">Projects</div>
+          <div class="ph-sub">3 active projects</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-primary btn-sm" onclick="showToast('info','Admin','Project creation requires System Admin role')">+ New Project</button>
+        </div>
+      </div>
+      <div class="content-pad">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;" id="projects-grid"></div>
+      </div>
+    </div>
+
+    <!-- ═══ AUDIT LOG ═══ -->
+    <div class="view" id="view-audit">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Governance</div>
+          <div class="ph-title">Audit Log</div>
+          <div class="ph-sub">Immutable event store · append-only · hash-chained</div>
+        </div>
+        <div class="ph-actions">
+          <div class="search-box" style="width:200px;"><span class="search-ico">🔍</span><input type="text" placeholder="Search events…"></div>
+          <button class="btn btn-secondary btn-sm" onclick="exportAuditCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="audit-timeline" id="audit-timeline"></div>
+    </div>
+
+    <!-- ═══ REPORTS ═══ -->
+    <div class="view" id="view-reports">
+      <div class="page-header">
+        <div class="ph-left">
+          <div class="ph-breadcrumb">Governance</div>
+          <div class="ph-title">Reports & Analytics</div>
+          <div class="ph-sub">Procurement performance · Spend · Compliance</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-primary btn-sm" onclick="exportReportPDF()">⬇ Export PDF</button>
+        </div>
+      </div>
+      <div class="content-pad" id="reports-content"></div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<!-- Exception Request Modal -->
+<div class="modal-backdrop" id="modal-exception">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Request 3-Quote Exception</div>
+      <div class="modal-close" onclick="closeModal('modal-exception')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div style="padding:10px 14px;background:rgba(192,39,45,0.06);border:1px solid rgba(192,39,45,0.2);border-radius:var(--radius);font-size:12px;color:var(--t3);margin-bottom:16px;">
+        ⚠️ This exception requires approval from: <strong style="color:var(--t2);">Procurement Manager + Finance Controller + GM</strong>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Exception Type <span class="req">*</span></label>
+        <select class="form-input form-select">
+          <option>— Select reason —</option>
+          <option>Sole Source / Proprietary System</option>
+          <option>Emergency / Time-Critical</option>
+          <option>Market Scarcity — documented</option>
+          <option>Previous tender — insufficient response</option>
+          <option>Other (full justification required)</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Justification <span class="req">*</span></label>
+        <textarea class="form-input" style="height:90px;" placeholder="Provide detailed justification including market research, attempts to source additional vendors, and business impact of delay…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Supporting Document</label>
+        <div style="border:1px dashed var(--border2);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;font-size:12px;color:var(--t4);">
+          📎 Attach market research / sole-source justification document
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-exception')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitException()">Submit Exception Request →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Bid Modal -->
+<div class="modal-backdrop" id="modal-add-bid">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">Enter Vendor Quotation</div>
+      <div class="modal-close" onclick="closeModal('modal-add-bid')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Vendor <span class="req">*</span></label>
+          <select class="form-input form-select">
+            <option>Green Energy Solutions LLC</option>
+            <option>Gulf Climate Systems</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bid Validity (days)</label>
+          <input type="number" class="form-input" value="60" placeholder="60">
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--t4);margin:12px 0 8px;">Line Items</div>
+      <table class="line-items-table">
+        <thead><tr><th>Description</th><th>Unit</th><th>Qty</th><th>Unit Rate (AED)</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td>Supply & Install HVAC Units (L3-L5)</td><td>No.</td><td>24</td><td><input type="number" class="score-input" style="width:90px;" value="" placeholder="0.00"></td><td><input type="text" class="score-input" style="width:90px;" readonly></td></tr>
+          <tr><td>Ductwork & Distribution</td><td>m²</td><td>1800</td><td><input type="number" class="score-input" style="width:90px;" placeholder="0.00"></td><td><input type="text" class="score-input" style="width:90px;" readonly></td></tr>
+          <tr><td>BMS Integration</td><td>LS</td><td>1</td><td><input type="number" class="score-input" style="width:90px;" placeholder="0.00"></td><td><input type="text" class="score-input" style="width:90px;" readonly></td></tr>
+        </tbody>
+      </table>
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label">Quotation Document (SharePoint)</label>
+        <div style="border:1px dashed var(--border2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;font-size:12px;color:var(--t4);">📎 Upload vendor quotation PDF</div>
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label">Notes / Clarifications</label>
+        <textarea class="form-input" placeholder="Any clarifications, deviations or conditions noted by vendor…" style="height:60px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-bid')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBid()">Save Quotation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Panel -->
+<div class="modal-backdrop" id="modal-notifications" onclick="closeModal('modal-notifications')" style="align-items:flex-start;justify-content:flex-end;padding:60px 16px 0 0;">
+  <div style="background:var(--b2);border:1px solid var(--border2);border-radius:8px;width:360px;box-shadow:var(--shadow2);animation:modalIn 0.2s var(--anim);" onclick="event.stopPropagation()">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:13px;font-weight:600;">Notifications</span>
+      <span style="font-size:10px;color:var(--r);cursor:pointer;">Mark all read</span>
+    </div>
+    <div style="max-height:400px;overflow-y:auto;" id="notif-list"></div>
+  </div>
+</div>
+
+<!-- Project Selector -->
+<div class="modal-backdrop" id="modal-project" onclick="closeModal('modal-project')" style="align-items:flex-start;justify-content:center;padding:60px 20px 0;">
+  <div style="background:var(--b2);border:1px solid var(--border2);border-radius:8px;width:460px;box-shadow:var(--shadow2);animation:modalIn 0.2s var(--anim);" onclick="event.stopPropagation()">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Switch Project</div>
+      <div class="search-box" style="width:100%;"><span class="search-ico">🔍</span><input type="text" placeholder="Search projects…"></div>
+    </div>
+    <div style="padding:8px 0;" id="project-modal-list"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════ -->
+<script>
+// ── State ──────────────────────────────────
+const state = {
+  currentView: 'dashboard',
+  currentProject: 'Keturah Reserve — Phase 2',
+  sidebarCollapsed: false,
+  autosaveTimer: null
+};
+
+// ── Sample Data ─────────────────────────────
+const PRs = [
+  {id:'MAG-PR-2026-0051',title:'Lighting Package — Levels 3–5',project:'KTR Ph.2',pkg:'Lighting (E03)',requester:'Sarah Johnson',value:850000,status:'submitted',date:'28 Mar 2026',sla:'2 Apr',slaCat:'warn'},
+  {id:'MAG-PR-2026-0050',title:'FF&E Furniture — Lobby & Amenities',project:'KTR Ph.2',pkg:'FF&E (D01)',requester:'Ahmed Al Rashid',value:2100000,status:'review',date:'25 Mar 2026',sla:'30 Mar',slaCat:'overdue'},
+  {id:'MAG-PR-2026-0049',title:'Landscape — Pool Deck & Podium',project:'KTR Ph.2',pkg:'Landscape (L01)',requester:'James Wilson',value:450000,status:'draft',date:'22 Mar 2026',sla:'—',slaCat:'none'},
+  {id:'MAG-PR-2026-0048',title:'Joinery Works — Kitchen Units',project:'MAG Eye',pkg:'Joinery (J02)',requester:'Sarah Johnson',value:1250000,status:'approved',date:'18 Mar 2026',sla:'Approved',slaCat:'ok'},
+  {id:'MAG-PR-2026-0047',title:'Sanitaryware — All Levels',project:'KTR Ph.2',pkg:'Finishes (F01)',requester:'James Wilson',value:620000,status:'rejected',date:'15 Mar 2026',sla:'Rejected',slaCat:'none'},
+  {id:'MAG-PR-2026-0046',title:'MEP — Fire Suppression System',project:'KTR Villas',pkg:'MEP (M02)',requester:'Ahmed Al Rashid',value:1850000,status:'approved',date:'10 Mar 2026',sla:'Approved',slaCat:'ok'},
+  {id:'MAG-PR-2026-0045',title:'Marble — Lobby Feature Wall',project:'KTR Ph.2',pkg:'Marble (F02)',requester:'Sarah Johnson',value:380000,status:'submitted',date:'8 Mar 2026',sla:'5 Apr',slaCat:'warn'},
+  {id:'MAG-PR-2026-0044',title:'Signage — External Wayfinding',project:'MAG Eye',pkg:'Signage (S01)',requester:'Peter Nguyen',value:220000,status:'review',date:'5 Mar 2026',sla:'28 Mar',slaCat:'overdue'},
+  {id:'MAG-PR-2026-0043',title:'Waterproofing — Basement',project:'KTR Villas',pkg:'Specialist (SP01)',requester:'James Wilson',value:340000,status:'approved',date:'1 Mar 2026',sla:'Approved',slaCat:'ok'},
+  {id:'MAG-PR-2026-0042',title:'External Cladding — Tower',project:'MAG Eye',pkg:'Finishes (F01)',requester:'Ahmed Al Rashid',value:5400000,status:'approved',date:'20 Feb 2026',sla:'Approved',slaCat:'ok'},
+  {id:'MAG-PR-2026-0041',title:'MEP — HVAC Package',project:'KTR Ph.2',pkg:'MEP (M01)',requester:'Peter Nguyen',value:4200000,status:'approved',date:'15 Feb 2026',sla:'Approved',slaCat:'ok'},
+  {id:'MAG-PR-2026-0040',title:'Marble & Stone Supply',project:'KTR Ph.2',pkg:'Marble (F01)',requester:'Sarah Johnson',value:2100000,status:'awarded',date:'1 Feb 2026',sla:'Awarded',slaCat:'ok'},
+];
+
+const RFQs = [
+  {id:'RFQ-2026-0031',pkg:'Marble & Stone',invited:4,received:3,compliance:'ok',deadline:'20 Mar 2026',status:'closed',valid:3},
+  {id:'RFQ-2026-0032',pkg:'FF&E Furniture',invited:5,received:5,compliance:'ok',deadline:'10 Apr 2026',status:'issued',valid:5},
+  {id:'RFQ-2026-0033',pkg:'Lighting Package',invited:3,received:1,compliance:'block',deadline:'15 Apr 2026',status:'issued',valid:1},
+  {id:'RFQ-2026-0034',pkg:'MEP — HVAC',invited:4,received:2,compliance:'block',deadline:'15 Apr 2026',status:'issued',valid:2},
+  {id:'RFQ-2026-0035',pkg:'Joinery Works',invited:3,received:3,compliance:'ok',deadline:'5 Apr 2026',status:'issued',valid:3},
+  {id:'RFQ-2026-0036',pkg:'Landscape Pkg',invited:4,received:3,compliance:'ok',deadline:'30 Apr 2026',status:'issued',valid:3},
+  {id:'RFQ-2026-0037',pkg:'Sanitaryware',invited:5,received:4,compliance:'ok',deadline:'22 Apr 2026',status:'issued',valid:4},
+  {id:'RFQ-2026-0038',pkg:'External Signage',invited:3,received:2,compliance:'exception',deadline:'18 Apr 2026',status:'issued',valid:2},
+  {id:'RFQ-2026-0029',pkg:'Specialist Waterproof',invited:2,received:2,compliance:'ok',deadline:'10 Mar 2026',status:'closed',valid:2},
+  {id:'RFQ-2026-0028',pkg:'Fire Suppression',invited:4,received:3,compliance:'ok',deadline:'5 Mar 2026',status:'closed',valid:3},
+  {id:'RFQ-2026-0027',pkg:'External Cladding',invited:5,received:5,compliance:'ok',deadline:'28 Feb 2026',status:'closed',valid:5},
+];
+
+const VENDORS = [
+  {id:'VND-001',name:'Gulf Stone Trading LLC',cat:'Marble & Stone',rating:4.8,pqCode:'GS-001',active:true,pqValue:'AED 5M',prevJobs:4,tags:['Approved','ISO Certified']},
+  {id:'VND-002',name:'Emirates Marble LLC',cat:'Marble & Stone',rating:4.5,pqCode:'EM-007',active:true,pqValue:'AED 3M',prevJobs:2,tags:['Approved']},
+  {id:'VND-003',name:'Stone Kingdom FZCO',cat:'Marble & Stone',rating:4.2,pqCode:'SK-012',active:true,pqValue:'AED 4M',prevJobs:1,tags:['New Vendor']},
+  {id:'VND-004',name:'Al Noor MEP Contracting',cat:'MEP',rating:4.7,pqCode:'AN-003',active:true,pqValue:'AED 15M',prevJobs:6,tags:['Approved','ISO 9001']},
+  {id:'VND-005',name:'Emitac Building Services',cat:'MEP',rating:4.4,pqCode:'EB-019',active:true,pqValue:'AED 20M',prevJobs:3,tags:['Approved']},
+  {id:'VND-006',name:'Green Energy Solutions LLC',cat:'MEP',rating:3.9,pqCode:'GE-008',active:true,pqValue:'AED 8M',prevJobs:1,tags:['Provisional']},
+  {id:'VND-007',name:'Emirates Lighting FZCO',cat:'Lighting',rating:4.6,pqCode:'EL-004',active:true,pqValue:'AED 2M',prevJobs:5,tags:['Approved']},
+  {id:'VND-008',name:'Lumino Interiors LLC',cat:'Lighting',rating:4.1,pqCode:'LI-011',active:true,pqValue:'AED 1.5M',prevJobs:2,tags:['Approved']},
+  {id:'VND-009',name:'Dubai Stone & Tiles',cat:'Marble & Stone',rating:4.0,pqCode:'DS-022',active:true,pqValue:'AED 2M',prevJobs:1,tags:['Provisional']},
+  {id:'VND-010',name:'Majlis Furniture LLC',cat:'FF&E',rating:4.5,pqCode:'MF-006',active:true,pqValue:'AED 10M',prevJobs:4,tags:['Approved']},
+  {id:'VND-011',name:'Casa Milano Furniture',cat:'FF&E',rating:4.8,pqCode:'CM-002',active:true,pqValue:'AED 12M',prevJobs:3,tags:['Approved','Preferred']},
+  {id:'VND-012',name:'Emirates Ceramics LLC',cat:'Finishes',rating:4.3,pqCode:'EC-009',active:true,pqValue:'AED 6M',prevJobs:5,tags:['Approved']},
+];
+
+const AUDIT_EVENTS = [
+  {type:'AWARD_CONFIRMED',entity:'RFQ-2026-0031',user:'Jahangir Khan',role:'Proc Manager',time:'Today 09:14',color:'g',desc:'RFQ-2026-0031 awarded to Gulf Stone Trading LLC. Award value AED 1,482,000. Signed memo stored in SharePoint.',delta:{status:{from:'evaluation',to:'awarded'},awardedVendor:{from:null,to:'VND-001'}}},
+  {type:'MEMO_SIGNED',entity:'MEMO-2026-0014',user:'James Mitchell',role:'Project Director',time:'Today 08:55',color:'g',desc:'Recommendation memo digitally signed via DocuSign. Envelope ID: DS-4821-X. Immutable snapshot stored in SharePoint/RecommendationMemos.',delta:null},
+  {type:'APPROVAL_DECISION',entity:'MAG-PR-2026-0047',user:'Omar Farouk',role:'Finance Controller',time:'Yesterday 16:42',color:'r',desc:'PR-2026-0047 rejected. Reason: "Budget code KTR2-F01-2026-Q1 has insufficient remaining budget. Please revise to cost code KTR2-F01-2026-Q2 or seek budget transfer authorisation."',delta:{status:{from:'under_review',to:'rejected'}}},
+  {type:'EXCEPTION_REQUESTED',entity:'RFQ-2026-0034',user:'Khalid Al Mansoori',role:'Proc Officer',time:'Yesterday 14:30',color:'gold',desc:'3-quote exception request submitted for RFQ-2026-0034 (MEP HVAC). Type: Market Scarcity. 2 of 3 required quotes received. Exception requires: Proc Manager + Finance + GM approval.',delta:null},
+  {type:'SUBMITTAL_APPROVED',entity:'SUB-2026-0022',user:'Priya Sharma',role:'Tech/QA Reviewer',time:'Yesterday 11:15',color:'blue',desc:'Technical submittal approved: Porcelain Tile TDS from Emirates Ceramics. Compliance checklist: 12/12 criteria passed. Sample retained in QA archive (REF: QA-S-2026-088).',delta:{status:{from:'under_review',to:'approved'}}},
+  {type:'PR_SUBMITTED',entity:'MAG-PR-2026-0051',user:'Sarah Johnson',role:'Requester',time:'28 Mar 2026 09:22',color:'g',desc:'PR-2026-0051 submitted for approval. Estimated value AED 850,000. Approval chain triggered: Line Manager → Procurement Manager → Finance Controller (Band 2).',delta:{status:{from:'draft',to:'submitted'}}},
+  {type:'PO_CREATED_ORACLE',entity:'PO-2026-0019',user:'System',role:'Oracle Adapter',time:'27 Mar 2026 15:00',color:'blue',desc:'Purchase Order successfully created in Oracle ERP. Oracle PO#: ORB-2026-PR-0019. Internal PO: MAG-PO-2026-0019. Project code: KTR-002-F01.',delta:{oracleStatus:{from:'queued',to:'created'},oraclePONumber:{from:null,to:'ORB-2026-PR-0019'}}},
+  {type:'APPROVAL_DECISION',entity:'MAG-PR-2026-0046',user:'James Mitchell',role:'Project Director',time:'26 Mar 2026 10:30',color:'g',desc:'PR-2026-0046 (MEP Fire Suppression — KTR Villas, AED 1,850,000) approved. All 5-step approval chain complete. RFQ creation authorised.',delta:{status:{from:'under_review',to:'approved'}}},
+];
+
+const APPROVALS = [
+  {id:'APR-001',title:'Purchase Requisition — Lighting Package Levels 3–5',entity:'MAG-PR-2026-0051',type:'PR Approval',amount:850000,requester:'Sarah Johnson',priority:'high',sla:'2 Apr 2026',slaCat:'warn',band:'Band 2',desc:'Lighting package requisition for Keturah Reserve Phase 2, Levels 3–5. Includes architectural lighting, feature lighting, emergency lighting and controls. 3 vendors to be invited from approved list.'},
+  {id:'APR-002',title:'Exception Request — RFQ-2026-0034 (3-Quote Waiver)',entity:'RFQ-2026-0034',type:'Exception Approval',amount:4200000,requester:'Khalid Al Mansoori',priority:'high',sla:'28 Mar 2026',slaCat:'overdue',band:'Exception',desc:'Request to proceed with 2 valid quotes for MEP HVAC package (AED 4.2M). Justification: Green Energy Solutions declined to quote citing capacity constraints; Gulf Climate Systems withdrew after site visit. Market research shows only 3 qualified contractors in UAE for this package specification. 2nd attempt RFQ recommended post-award.'},
+  {id:'APR-003',title:'PR — FF&E Furniture — Lobby & Amenities',entity:'MAG-PR-2026-0050',type:'PR Approval',amount:2100000,requester:'Ahmed Al Rashid',priority:'high',sla:'30 Mar 2026',slaCat:'overdue',band:'Band 3',desc:'High-end FF&E package for lobby, amenity areas, and common areas in Keturah Reserve Phase 2. Includes reception counters, seating, accent furniture, and decorative items. Keturah brand guidelines to be applied.'},
+  {id:'APR-004',title:'Award Recommendation — Joinery Works',entity:'RFQ-2026-0035',type:'Award Approval',amount:1800000,requester:'Jahangir Khan',priority:'med',sla:'5 Apr 2026',slaCat:'ok',band:'Band 3',desc:'Recommendation to award joinery package to Al Mashriq Joinery LLC at AED 1,800,000. Scored highest in evaluation (88.4/100). Includes wardrobes, kitchen joinery, bathroom vanities and reception millwork for all units.'},
+  {id:'APR-005',title:'PR — Landscape Pool Deck & Podium',entity:'MAG-PR-2026-0049',type:'PR Approval',amount:450000,requester:'James Wilson',priority:'low',sla:'10 Apr 2026',slaCat:'ok',band:'Band 1',desc:'Landscape works for pool deck and podium level at Keturah Reserve Phase 2. Includes hardscape, planting, irrigation, and outdoor furniture. Subject to final landscape design approval from consultant.'},
+];
+
+const PROJECTS = [
+  {code:'KTR-002',name:'Keturah Reserve — Phase 2',status:'active',budget:'AED 180M',committed:'AED 47.2M',pkgs:12,prs:14,rfqs:8,desc:'Luxury branded residential development, JVC District. Phase 2 includes 3 towers, 450 units, premium amenity podium.'},
+  {code:'KTR-001',name:'Keturah Reserve Villas',status:'active',budget:'AED 65M',committed:'AED 58.1M',pkgs:8,prs:6,rfqs:2,desc:'Standalone villa cluster, Phase 1. Near completion — procurement of final MEP and landscape packages underway.'},
+  {code:'EYE-001',name:'MAG Eye Tower',status:'active',budget:'AED 92M',committed:'AED 31.4M',pkgs:9,prs:4,rfqs:1,desc:'Commercial mixed-use tower, Business Bay. Procurement of external cladding, MEP and fit-out packages active.'},
+];
+
+const SUBMITTALS = [
+  {ref:'SUB-2026-0024',desc:'Calacatta Oro Marble Sample — 600×600mm',vendor:'Gulf Stone Trading LLC',cat:'Marble/Stone',submitted:'25 Mar 2026',reviewer:'Priya Sharma',status:'review'},
+  {ref:'SUB-2026-0023',desc:'HVAC Unit Technical Data Sheet — Carrier 42EP',vendor:'Al Noor MEP',cat:'MEP',submitted:'22 Mar 2026',reviewer:'Priya Sharma',status:'review'},
+  {ref:'SUB-2026-0022',desc:'Porcelain Tile TDS — Emirates Ceramics EC-7800',vendor:'Emirates Ceramics',cat:'Finishes',submitted:'20 Mar 2026',reviewer:'Priya Sharma',status:'approved'},
+  {ref:'SUB-2026-0021',desc:'Lumina Track System — Lighting Datasheet',vendor:'Emirates Lighting FZCO',cat:'Lighting',submitted:'15 Mar 2026',reviewer:'Priya Sharma',status:'approved'},
+  {ref:'SUB-2026-0020',desc:'Waterproofing Membrane TDS — Sika Pro',vendor:'Sika UAE',cat:'Specialist',submitted:'10 Mar 2026',reviewer:'Priya Sharma',status:'rejected'},
+  {ref:'SUB-2026-0019',desc:'Travertine Cladding — Material Compliance Sheet',vendor:'Stone Kingdom FZCO',cat:'Marble/Stone',submitted:'5 Mar 2026',reviewer:'Priya Sharma',status:'review'},
+];
+
+// ── Navigation ──────────────────────────────
+function navigate(view, sub) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const mapToNav = {'new-pr':'prs','rfq-detail':'rfqs','bids':'rfqs'};
+  const navKey = mapToNav[view] || view;
+  document.querySelector(`.nav-item[onclick="navigate('${navKey}')"]`)?.classList.add('active');
+
+  const viewEl = document.getElementById(`view-${view}`);
+  if(viewEl) viewEl.classList.add('active');
+
+  const breadcrumbs = {
+    dashboard:'Dashboard',prs:'Procurement › Purchase Requisitions',
+    'new-pr':'Procurement › Purchase Requisitions › New PR',
+    rfqs:'Procurement › RFQ / RFP',
+    'rfq-detail':'Procurement › RFQ / RFP › RFQ-2026-0034',
+    bids:'Procurement › Bids & Evaluation',
+    approvals:'Governance › Approvals',submittals:'Technical › Submittals',
+    vendors:'Master Data › Vendor Master',projects:'Master Data › Projects',
+    audit:'Governance › Audit Log',reports:'Governance › Reports',
+  };
+  document.getElementById('breadcrumb').innerHTML = `<span>${breadcrumbs[view]||view}</span>`;
+  state.currentView = view;
+  window.scrollTo(0,0);
+  document.getElementById('main').scrollTo(0,0);
+}
+
+function toggleSidebar() {
+  state.sidebarCollapsed = !state.sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed', state.sidebarCollapsed);
+}
+
+// ── Table Renderers ─────────────────────────
+function renderPRTable() {
+  const statusMap = {
+    draft:'badge-draft',submitted:'badge-submitted',
+    review:'badge-review',approved:'badge-approved',
+    rejected:'badge-rejected',awarded:'badge-awarded'
+  };
+  const slaMap = {ok:'sla-ok',warn:'sla-warn',overdue:'sla-overdue',none:''};
+  const tbody = document.getElementById('pr-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = PRs.map(pr => `
+    <tr onclick="showPRDetail('${pr.id}')">
+      <td><span class="mono">${pr.id}</span></td>
+      <td><strong>${pr.title}</strong></td>
+      <td><div>${pr.project}</div><div style="font-size:10px;color:var(--t4);">${pr.pkg}</div></td>
+      <td>${pr.requester}</td>
+      <td style="font-family:var(--mono);">${Number(pr.value).toLocaleString()}</td>
+      <td><span class="badge ${statusMap[pr.status]}">${pr.status}</span></td>
+      <td style="color:var(--t4);font-size:11px;">${pr.date}</td>
+      <td><span class="ai-sla ${slaMap[pr.slaCat]||''}" style="${pr.slaCat==='none'?'color:var(--t4);font-size:11px;':''}">${pr.sla}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();navigate('prs')">···</button></td>
+    </tr>`).join('');
+}
+
+function renderRFQTable() {
+  const tbody = document.getElementById('rfq-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = RFQs.map(r => {
+    let comp = '';
+    if(r.compliance==='ok') comp=`<span class="badge badge-approved">✓ ${r.valid}/3 Met</span>`;
+    else if(r.compliance==='block') comp=`<span class="badge badge-rejected">🚫 ${r.valid}/3</span>`;
+    else comp=`<span class="badge badge-exception">⚠ Exception</span>`;
+    const statusMap = {closed:'badge-draft',issued:'badge-issued'};
+    return `<tr onclick="${r.compliance==='block'?`navigate('rfq-detail')`:`navigate('bids')`}">
+      <td><span class="mono">${r.id}</span></td>
+      <td><strong>${r.pkg}</strong></td>
+      <td style="text-align:center;">${r.invited}</td>
+      <td style="text-align:center;">${r.received}</td>
+      <td>${comp}</td>
+      <td style="font-size:11px;color:var(--t4);">${r.deadline}</td>
+      <td><span class="badge ${statusMap[r.status]||'badge-draft'}">${r.status}</span></td>
+      <td><button class="btn btn-ghost btn-sm">→</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderApprovals() {
+  const container = document.getElementById('approval-list');
+  if(!container) return;
+  const slaLabel = {ok:'On Track',warn:'Due Soon',overdue:'SLA OVERDUE'};
+  const slaCls = {ok:'sla-ok',warn:'sla-warn',overdue:'sla-overdue'};
+  container.innerHTML = APPROVALS.map((a,i) => `
+    <div class="approval-item" id="apr-${i}">
+      <div class="ai-header" onclick="toggleApproval(${i})">
+        <div class="ai-priority pri-${a.priority}"></div>
+        <div class="ai-info">
+          <div class="ai-title">${a.title}</div>
+          <div class="ai-meta">
+            <span>${a.type}</span>
+            <span class="mono">${a.entity}</span>
+            <span>From: ${a.requester}</span>
+            <span class="ai-amount">AED ${Number(a.amount).toLocaleString()}</span>
+            <span class="badge badge-pending" style="font-size:9px;">${a.band}</span>
+          </div>
+        </div>
+        <span class="ai-sla ${slaCls[a.slaCat]}">${slaLabel[a.slaCat]} · ${a.sla}</span>
+        <div class="ai-actions">
+          <button class="btn btn-success btn-sm btn-icon" onclick="event.stopPropagation();approveItem(${i})">✓</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();toggleApproval(${i})">···</button>
+        </div>
+      </div>
+      <div class="approval-detail" id="apr-detail-${i}">
+        <div class="approval-desc">${a.desc}</div>
+        <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="showToast('info','Documents','Opening related documents in SharePoint…')">📄 View Documents</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('info','PR','Opening ${a.entity} detail…')">🔍 View ${a.entity}</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('info','Audit','Loading audit trail for ${a.entity}…')">📋 Audit Trail</button>
+        </div>
+        <div class="decision-area">
+          <div style="flex:1;">
+            <div class="form-label" style="margin-bottom:4px;">Comment / Reason Code <span style="font-size:10px;color:var(--t4);">(required for rejection)</span></div>
+            <textarea class="decision-input" id="apr-comment-${i}" placeholder="Add comment or reason for your decision…"></textarea>
+          </div>
+          <div class="decision-btns">
+            <button class="btn btn-success btn-sm" onclick="approveItem(${i})">✓ Approve</button>
+            <button class="btn" style="background:var(--r);color:#fff;" onclick="rejectItem(${i})">✗ Reject</button>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('warning','Escalation','Escalation sent to GM for review')">↑ Escalate</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderVendors() {
+  const container = document.getElementById('vendor-list');
+  if(!container) return;
+  const stars = n => '★'.repeat(Math.floor(n)) + (n%1?'½':'') + '☆'.repeat(5-Math.ceil(n));
+  container.innerHTML = VENDORS.map(v => `
+    <div class="vendor-list-item" onclick="showVendorDetail('${v.id}')">
+      <div class="vli-avatar">${v.name.slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;">
+        <div class="vli-name">${v.name}</div>
+        <div class="vli-cat">${v.cat} · ${v.pqCode} · ${v.tags.map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>
+      </div>
+      <div class="vli-rating">${stars(v.rating)} <span style="color:var(--t3);margin-left:4px;">${v.rating}</span></div>
+      <div class="vli-stats">
+        <div class="vli-stat-val">${v.prevJobs}</div>
+        <div class="vli-stat-label">Past Jobs</div>
+      </div>
+      <div class="vli-stats" style="margin-left:16px;">
+        <div class="vli-stat-val">${v.pqValue}</div>
+        <div class="vli-stat-label">PQ Value</div>
+      </div>
+      <span class="badge ${v.active?'badge-approved':'badge-rejected'}" style="margin-left:12px;">${v.active?'Active':'Inactive'}</span>
+    </div>`).join('');
+}
+
+function renderProjects() {
+  const container = document.getElementById('projects-grid');
+  if(!container) return;
+  container.innerHTML = PROJECTS.map(p => `
+    <div class="card card-pad" style="cursor:pointer;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='var(--border2)'" onmouseleave="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <span class="mono" style="font-size:10px;color:var(--r);">${p.code}</span>
+        <span class="badge badge-approved">${p.status}</span>
+      </div>
+      <div style="font-family:var(--serif);font-size:1.1rem;color:var(--t1);margin-bottom:8px;">${p.name}</div>
+      <div style="font-size:11.5px;color:var(--t4);line-height:1.5;margin-bottom:14px;">${p.desc}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:12px;border-top:1px solid var(--border);">
+        <div><div style="font-size:10px;color:var(--t4);">Budget</div><div style="font-size:12px;color:var(--t2);">${p.budget}</div></div>
+        <div><div style="font-size:10px;color:var(--t4);">Committed</div><div style="font-size:12px;color:var(--t2);">${p.committed}</div></div>
+        <div><div style="font-size:10px;color:var(--t4);">Packages</div><div style="font-size:12px;color:var(--t2);">${p.pkgs}</div></div>
+        <div><div style="font-size:10px;color:var(--t4);">Active PRs</div><div style="font-size:12px;color:var(--t2);">${p.prs}</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderAudit() {
+  const container = document.getElementById('audit-timeline');
+  if(!container) return;
+  const colorMap = {g:'var(--g)',r:'var(--r)',gold:'var(--gold)',blue:'var(--blue)'};
+  container.innerHTML = AUDIT_EVENTS.map((e,i) => `
+    <div class="audit-item">
+      <div class="audit-dot-col">
+        <div class="audit-dot" style="background:${colorMap[e.color]};"></div>
+        ${i < AUDIT_EVENTS.length-1 ? '<div class="audit-line"></div>' : ''}
+      </div>
+      <div class="audit-body">
+        <div class="audit-header">
+          <span class="audit-event">${e.type}</span>
+          <span class="audit-time">${e.time}</span>
+          <span class="mono" style="font-size:10px;color:var(--t4);">${e.entity}</span>
+          <span style="font-size:9px;background:var(--b4);padding:1px 6px;border-radius:2px;color:var(--t4);">SHA-256: ${Math.random().toString(36).slice(2,10)}…</span>
+        </div>
+        <div class="audit-user">${e.user} <span style="font-weight:400;color:var(--t4);">· ${e.role}</span></div>
+        <div class="audit-desc">${e.desc}</div>
+        ${e.delta ? `<div class="audit-delta">${Object.entries(e.delta).map(([k,v])=>`<div><span class="delta-removed">- ${k}: ${JSON.stringify(v.from)}</span><br><span class="delta-added">+ ${k}: ${JSON.stringify(v.to)}</span></div>`).join('<hr style="border:none;border-top:1px solid var(--b5);margin:4px 0;">')}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function renderSubmittals() {
+  const tbody = document.getElementById('submittals-tbody');
+  if(!tbody) return;
+  const statusMap = {review:'badge-review',approved:'badge-approved',rejected:'badge-rejected'};
+  tbody.innerHTML = SUBMITTALS.map(s => `
+    <tr onclick="showToast('info','Submittal','Opening ${s.ref} detail…')">
+      <td><span class="mono">${s.ref}</span></td>
+      <td><strong>${s.desc}</strong></td>
+      <td>${s.vendor}</td>
+      <td><span class="tag">${s.cat}</span></td>
+      <td style="color:var(--t4);font-size:11px;">${s.submitted}</td>
+      <td>${s.reviewer}</td>
+      <td><span class="badge ${statusMap[s.status]}">${s.status}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">→</button></td>
+    </tr>`).join('');
+}
+
+function renderReports() {
+  const c = document.getElementById('reports-content');
+  if(!c) return;
+  c.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;">
+      <div class="card card-pad" style="cursor:pointer;transition:border-color 0.2s;border-left:3px solid var(--r);" onclick="showToast('info','Report','Generating Spend by Category report…')">
+        <div style="font-size:11px;font-weight:600;color:var(--r);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Spend Report</div>
+        <div style="font-family:var(--serif);font-size:1.2rem;color:var(--t1);">Spend by Category & Project</div>
+        <div style="font-size:11px;color:var(--t4);margin-top:4px;">YTD · PDF + Excel</div>
+      </div>
+      <div class="card card-pad" style="cursor:pointer;border-left:3px solid var(--gold);" onclick="showToast('info','Report','Generating 3-Quote compliance report…')">
+        <div style="font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Compliance</div>
+        <div style="font-family:var(--serif);font-size:1.2rem;color:var(--t1);">3-Quote Compliance Tracker</div>
+        <div style="font-size:11px;color:var(--t4);margin-top:4px;">Current month · All projects</div>
+      </div>
+      <div class="card card-pad" style="cursor:pointer;border-left:3px solid var(--blue);" onclick="showToast('info','Report','Generating SLA analytics report…')">
+        <div style="font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Cycle Time</div>
+        <div style="font-family:var(--serif);font-size:1.2rem;color:var(--t1);">SLA & Cycle Time Analytics</div>
+        <div style="font-size:11px;color:var(--t4);margin-top:4px;">By stage · Bottleneck detection</div>
+      </div>
+    </div>
+    <div class="card" style="overflow:hidden;">
+      <div class="table-toolbar"><span style="font-size:12px;font-weight:600;color:var(--t2);">Spend by Category — YTD 2026 (AED)</span></div>
+      <table>
+        <thead><tr><th>Category</th><th>Budget (AED)</th><th>Committed (AED)</th><th>Awarded (AED)</th><th>% Used</th><th>Savings</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Marble & Stone</strong></td><td class="font-mono">8,400,000</td><td class="font-mono">4,226,000</td><td class="font-mono">2,964,000</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:4px;background:var(--b5);border-radius:2px;"><div style="width:50%;height:100%;background:var(--g);border-radius:2px;"></div></div><span class="font-mono" style="font-size:11px;">50.3%</span></div></td><td class="text-green font-mono">+64,000</td></tr>
+          <tr><td><strong>MEP (HVAC, Elec, Plumb)</strong></td><td class="font-mono">24,600,000</td><td class="font-mono">18,200,000</td><td class="font-mono">12,840,000</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:4px;background:var(--b5);border-radius:2px;"><div style="width:74%;height:100%;background:var(--gold);border-radius:2px;"></div></div><span class="font-mono" style="font-size:11px;">74.0%</span></div></td><td class="text-green font-mono">+380,000</td></tr>
+          <tr><td><strong>Lighting</strong></td><td class="font-mono">2,100,000</td><td class="font-mono">850,000</td><td class="font-mono">0</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:4px;background:var(--b5);border-radius:2px;"><div style="width:40%;height:100%;background:var(--blue);border-radius:2px;"></div></div><span class="font-mono" style="font-size:11px;">40.5%</span></div></td><td style="color:var(--t4);">—</td></tr>
+          <tr><td><strong>FF&E Furniture</strong></td><td class="font-mono">6,400,000</td><td class="font-mono">2,100,000</td><td class="font-mono">0</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:4px;background:var(--b5);border-radius:2px;"><div style="width:33%;height:100%;background:var(--r);border-radius:2px;"></div></div><span class="font-mono" style="font-size:11px;">32.8%</span></div></td><td style="color:var(--t4);">—</td></tr>
+          <tr><td><strong>Joinery Works</strong></td><td class="font-mono">4,200,000</td><td class="font-mono">3,900,000</td><td class="font-mono">1,800,000</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:4px;background:var(--b5);border-radius:2px;"><div style="width:93%;height:100%;background:var(--r);border-radius:2px;"></div></div><span class="font-mono" style="font-size:11px;">92.9%</span></div></td><td class="text-green font-mono">+42,000</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderSpendChart() {
+  const el = document.getElementById('spend-chart');
+  if(!el) return;
+  const data = [
+    {label:'Marble',value:42,color:'var(--t3)'},
+    {label:'MEP',value:78,color:'var(--r)'},
+    {label:'Lighting',value:24,color:'var(--gold)'},
+    {label:'FF&E',value:30,color:'var(--blue)'},
+    {label:'Joinery',value:56,color:'var(--t4)'},
+    {label:'Other',value:18,color:'var(--b6)'},
+  ];
+  el.innerHTML = data.map(d => `
+    <div class="bar-col">
+      <div class="bar-value">${d.value}M</div>
+      <div class="bar" style="height:${d.value}%;background:${d.color};min-height:4px;"></div>
+      <div class="bar-label">${d.label}</div>
+    </div>`).join('');
+}
+
+function renderNotifications() {
+  const el = document.getElementById('notif-list');
+  if(!el) return;
+  const notifs = [
+    {icon:'🔴',title:'SLA Overdue: MAG-PR-2026-0050',msg:'FF&E PR approval overdue by 1 day. Awaiting your decision.',time:'30 min ago',unread:true},
+    {icon:'⚠️',title:'3-Quote Exception Needs Approval',msg:'RFQ-2026-0034 exception request requires Proc Manager + Finance + GM.',time:'2h ago',unread:true},
+    {icon:'✅',title:'RFQ-2026-0031 Awarded',msg:'Marble & Stone package awarded to Gulf Stone Trading AED 1.48M.',time:'3h ago',unread:true},
+    {icon:'📄',title:'Recommendation Memo Signed',msg:'MEMO-2026-0014 signed by James Mitchell and stored in SharePoint.',time:'Today 09:00',unread:false},
+    {icon:'🔔',title:'New Bid Received',msg:'Emitac Building Services submitted quote for RFQ-2026-0034.',time:'Yesterday',unread:false},
+  ];
+  el.innerHTML = notifs.map(n => `
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;${n.unread?'background:rgba(192,39,45,0.04);':''}">
+      <div style="font-size:1rem;flex-shrink:0;">${n.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:${n.unread?'600':'400'};color:var(--t1);margin-bottom:2px;">${n.title}</div>
+        <div style="font-size:11px;color:var(--t4);line-height:1.4;">${n.msg}</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:4px;">${n.time}</div>
+      </div>
+      ${n.unread?'<div style="width:7px;height:7px;border-radius:50%;background:var(--r);flex-shrink:0;margin-top:4px;"></div>':''}
+    </div>`).join('');
+}
+
+function renderProjectModal() {
+  const el = document.getElementById('project-modal-list');
+  if(!el) return;
+  el.innerHTML = PROJECTS.map(p => `
+    <div style="padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.1s;" onmouseenter="this.style.background='rgba(255,255,255,0.03)'" onmouseleave="this.style.background=''" onclick="switchProject('${p.name}')">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div style="font-size:12.5px;font-weight:500;color:var(--t1);">${p.name}</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:2px;">${p.code} · Budget ${p.budget}</div>
+      </div>
+      ${p.name===state.currentProject?'<span style="color:var(--g);font-size:12px;">✓</span>':''}
+    </div>`).join('');
+}
+
+// ── Interactions ────────────────────────────
+function toggleApproval(i) {
+  const d = document.getElementById(`apr-detail-${i}`);
+  d.classList.toggle('open');
+}
+
+function approveItem(i) {
+  const comment = document.getElementById(`apr-comment-${i}`)?.value || '';
+  const item = document.getElementById(`apr-${i}`);
+  if(item) item.style.opacity='0.4';
+  showToast('success','Approved',`${APPROVALS[i].entity} approved. Next approver notified. Audit event logged.`);
+  setTimeout(()=>{ if(item) item.style.display='none'; },2000);
+}
+
+function rejectItem(i) {
+  const comment = document.getElementById(`apr-comment-${i}`)?.value;
+  if(!comment || comment.trim().length < 5) {
+    showToast('error','Required','Please enter a reason for rejection (min 5 chars).'); return;
+  }
+  const item = document.getElementById(`apr-${i}`);
+  if(item) item.style.opacity='0.4';
+  showToast('error','Rejected',`${APPROVALS[i].entity} rejected. Requester notified with your reason. Audit event logged.`);
+  setTimeout(()=>{ if(item) item.style.display='none'; },2000);
+}
+
+function filterTable(input, tableId) {
+  const q = input.value.toLowerCase();
+  document.querySelectorAll(`#${tableId} tbody tr`).forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function filterVendors(q) {
+  document.querySelectorAll('.vendor-list-item').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function filterStatus(tableId, status) {
+  document.querySelectorAll(`#${tableId} tbody tr`).forEach(r => {
+    r.style.display = status==='all' || r.textContent.toLowerCase().includes(status) ? '' : 'none';
+  });
+}
+
+// ── PR Form Helpers ──────────────────────────
+let autosaveTimeout;
+function triggerAutosave() {
+  const el = document.getElementById('draft-status');
+  if(el) el.textContent = 'Saving…';
+  clearTimeout(autosaveTimeout);
+  autosaveTimeout = setTimeout(()=>{
+    if(el) el.textContent = '✓ Saved as draft';
+  }, 1200);
+}
+
+function updateApprovalBand() {
+  const val = parseFloat(document.getElementById('pr-value')?.value) || 0;
+  const el = document.getElementById('approval-band-preview');
+  if(!el) return;
+  let band='', chain='', color='var(--t3)';
+  if(val===0){el.innerHTML='Enter an estimated value above to see the required approval chain.';el.style.color='var(--t4)';return;}
+  if(val<=50000){band='Band 1';chain='Line Manager → Procurement Officer';color='var(--g)';}
+  else if(val<=200000){band='Band 2';chain='Line Manager → Procurement Manager → Finance Controller';color='var(--gold)';}
+  else if(val<=500000){band='Band 3';chain='Line Manager → Procurement Manager → Finance Controller → Project Director';color='var(--gold)';}
+  else if(val<=1000000){band='Band 4';chain='… + GM / Division Head';color='var(--r)';}
+  else{band='Band 5';chain='… + CEO / CFO (parallel approval)';color='var(--r)';}
+  el.innerHTML=`<span style="font-family:var(--mono);font-size:10px;background:var(--b5);padding:1px 7px;border-radius:2px;color:${color};">${band}</span> <strong style="color:var(--t2);">AED ${val.toLocaleString()}</strong> requires: <span style="color:${color};">${chain}</span>`;
+  triggerAutosave();
+}
+
+function addLineItem() {
+  const tbody = document.getElementById('line-items-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML=`<td><input type="text" placeholder="Item description…" oninput="calcLineTotal(this)"></td><td><input type="text" placeholder="m²" style="width:60px;"></td><td><input type="number" placeholder="0" style="width:70px;" oninput="calcLineTotal(this)"></td><td><input type="number" placeholder="0.00" style="width:100px;" oninput="calcLineTotal(this)"></td><td><input type="text" readonly style="width:100px;color:var(--t3);" placeholder="0.00" class="line-total"></td><td><button onclick="removeLineItem(this)" style="background:none;border:none;color:var(--t4);cursor:pointer;font-size:14px;">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+
+function removeLineItem(btn) {
+  const rows = document.querySelectorAll('#line-items-body tr');
+  if(rows.length<=1){showToast('warning','Min Rows','At least one line item is required.');return;}
+  btn.closest('tr').remove();
+}
+
+function calcLineTotal(input) {
+  const row = input.closest('tr');
+  const qty = parseFloat(row.querySelector('td:nth-child(3) input')?.value)||0;
+  const rate = parseFloat(row.querySelector('td:nth-child(4) input')?.value)||0;
+  const total = row.querySelector('.line-total');
+  if(total) total.value = qty&&rate ? (qty*rate).toLocaleString('en-US',{minimumFractionDigits:2}) : '';
+  triggerAutosave();
+}
+
+function savePrDraft() {
+  showToast('success','Draft Saved','PR draft saved. You can continue editing anytime.');
+  const el = document.getElementById('draft-status');
+  if(el) el.textContent = '✓ Saved as draft';
+}
+
+function submitPr() {
+  const title = document.getElementById('pr-title')?.value;
+  const project = document.getElementById('pr-project')?.value;
+  const pkg = document.getElementById('pr-package')?.value;
+  const val = document.getElementById('pr-value')?.value;
+  const just = document.getElementById('pr-justification')?.value;
+  if(!title||!project||!pkg||!val||!just){
+    showToast('error','Validation Error','Please complete all required fields before submitting.'); return;
+  }
+  showToast('success','PR Submitted','MAG-PR-2026-0052 submitted for approval. Approval chain triggered. SLA: 2 days.');
+  setTimeout(()=>navigate('prs'),1500);
+}
+
+function generateMemo() {
+  showToast('info','Generating','Recommendation memo PDF generating…');
+  setTimeout(()=>showToast('success','Memo Ready','MEMO-2026-0015 generated and uploaded to SharePoint/RecommendationMemos. Sending to DocuSign for signature…'),2000);
+}
+
+function recalcScores() {
+  const weights=[0.30,0.25,0.20,0.15,0.10];
+  const vendors=3;
+  const scores=[[],[],[]];
+  document.querySelectorAll('.score-table tbody tr:not(:last-child):not([style])').forEach((r,ri)=>{
+    r.querySelectorAll('.score-input').forEach((inp,vi)=>{
+      scores[vi][ri]=parseFloat(inp.value)||0;
+    });
+  });
+  const weighted=scores.map(vs=>vs.reduce((a,v,i)=>a+(v*weights[i]),0));
+  const techIds=['score-v1','score-v2','score-v3'];
+  weighted.forEach((w,i)=>{const el=document.getElementById(techIds[i]);if(el)el.textContent=w.toFixed(1);});
+  // commercial: Gulf=1482000,Emirates=1557200,Stone Kingdom=1486800 → normalize inversely
+  const commScores=[100,96.1,99.7];
+  const combined=weighted.map((w,i)=>w*0.4+commScores[i]*0.6);
+  const maxIdx=combined.indexOf(Math.max(...combined));
+  ['combined-v1','combined-v2','combined-v3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=combined[i].toFixed(1)+(i===maxIdx?' ★':'');el.className='score-total'+(i===maxIdx?' score-winner':'');}
+  });
+}
+
+// ── Modals ──────────────────────────────────
+function showExceptionModal(){document.getElementById('modal-exception').classList.add('open');}
+function showAddBidModal(){document.getElementById('modal-add-bid').classList.add('open');}
+function showCreateRfqModal(){showToast('info','New RFQ','RFQ creation wizard: select approved PR → configure vendors → set deadline.');}
+function showNotifications(){renderNotifications();document.getElementById('modal-notifications').classList.add('open');}
+function showProjectModal(){renderProjectModal();document.getElementById('modal-project').classList.add('open');}
+function closeModal(id){document.getElementById(id)?.classList.remove('open');}
+function closeAllModals(){document.querySelectorAll('.modal-backdrop').forEach(m=>m.classList.remove('open'));}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAllModals();});
+
+function showPRDetail(id){
+  const pr = PRs.find(p=>p.id===id);
+  if(!pr){showToast('error','Not Found',`PR ${id} not found.`);return;}
+  const statusMap = {draft:'badge-draft',submitted:'badge-submitted',review:'badge-review',approved:'badge-approved',rejected:'badge-rejected',awarded:'badge-awarded'};
+  // Build a detail modal dynamically
+  let existing = document.getElementById('modal-pr-detail');
+  if(!existing){
+    existing = document.createElement('div');
+    existing.className='modal-backdrop';existing.id='modal-pr-detail';
+    existing.onclick=function(){closeModal('modal-pr-detail')};
+    document.body.appendChild(existing);
+  }
+  existing.innerHTML=`<div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">${pr.id} · ${pr.title}</div><div class="modal-close" onclick="closeModal('modal-pr-detail')">✕</div></div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:16px;"><span class="badge ${statusMap[pr.status]}" style="font-size:11px;padding:4px 10px;">${pr.status.toUpperCase()}</span><span class="chip">Source: SharePoint · PRDocuments</span><span class="chip">MS Teams: #procurement-approvals</span></div>
+      <div class="info-grid" style="margin-bottom:16px;">
+        <span class="ig-label">PR Number</span><span class="ig-value" style="font-family:var(--mono);">${pr.id}</span>
+        <span class="ig-label">Title</span><span class="ig-value">${pr.title}</span>
+        <span class="ig-label">Project · Package</span><span class="ig-value">${pr.project} · ${pr.pkg}</span>
+        <span class="ig-label">Requester</span><span class="ig-value">${pr.requester}</span>
+        <span class="ig-label">Estimated Value</span><span class="ig-value" style="font-family:var(--mono);">AED ${Number(pr.value).toLocaleString()}</span>
+        <span class="ig-label">Submitted</span><span class="ig-value">${pr.date}</span>
+        <span class="ig-label">SLA Deadline</span><span class="ig-value">${pr.sla}</span>
+        <span class="ig-label">Data Source</span><span class="ig-value" style="color:var(--g);">SharePoint + Oracle ERP (synced)</span>
+      </div>
+      <div style="padding:12px;background:var(--b3);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:12px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;margin-bottom:6px;">Approval Chain</div>
+        <div style="font-size:12px;color:var(--t2);">${pr.value<=50000?'Line Manager → Procurement Officer':pr.value<=200000?'Line Manager → Procurement Manager → Finance Controller':pr.value<=500000?'Line Manager → Procurement Manager → Finance Controller → Project Director':pr.value<=1000000?'Line Manager → Proc Manager → Finance → Project Director → GM':'Line Manager → Proc Manager → Finance → PD → GM → CEO/CFO'}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="showToast('info','SharePoint','Opening ${pr.id} documents in SharePoint KTR2/PRDocuments…')">📄 SharePoint Docs</button>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('info','MS Teams','Opening discussion thread in #procurement-approvals…')">💬 Teams Thread</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('info','Audit','Loading audit trail for ${pr.id}…')">📋 Audit Trail</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportPRDetail('${pr.id}')">⬇ Export Detail</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-pr-detail')">Close</button></div>
+  </div>`;
+  existing.classList.add('open');
+}
+
+function showVendorDetail(id){
+  const v=VENDORS.find(x=>x.id===id);
+  if(!v){showToast('error','Not Found','Vendor not found.');return;}
+  let existing = document.getElementById('modal-vendor-detail');
+  if(!existing){
+    existing = document.createElement('div');
+    existing.className='modal-backdrop';existing.id='modal-vendor-detail';
+    existing.onclick=function(){closeModal('modal-vendor-detail')};
+    document.body.appendChild(existing);
+  }
+  const stars = n => '★'.repeat(Math.floor(n)) + (n%1?'½':'') + '☆'.repeat(5-Math.ceil(n));
+  existing.innerHTML=`<div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">${v.name}</div><div class="modal-close" onclick="closeModal('modal-vendor-detail')">✕</div></div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div class="vli-avatar" style="width:48px;height:48px;font-size:16px;">${v.name.slice(0,2).toUpperCase()}</div>
+        <div><div style="font-size:16px;font-weight:600;color:var(--t1);">${v.name}</div><div style="font-size:12px;color:var(--t4);margin-top:2px;">${v.cat} · ${v.pqCode}</div><div style="margin-top:4px;color:var(--gold);font-size:12px;">${stars(v.rating)} ${v.rating}/5.0</div></div>
+        <div style="margin-left:auto;"><span class="badge ${v.active?'badge-approved':'badge-rejected'}" style="font-size:11px;padding:4px 10px;">${v.active?'Active':'Inactive'}</span></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">${v.tags.map(t=>'<span class="chip">'+t+'</span>').join('')}<span class="chip">Source: SharePoint · VendorMaster</span></div>
+      <div class="info-grid" style="margin-bottom:16px;">
+        <span class="ig-label">Vendor ID</span><span class="ig-value" style="font-family:var(--mono);">${v.id}</span>
+        <span class="ig-label">Category</span><span class="ig-value">${v.cat}</span>
+        <span class="ig-label">PQ Code</span><span class="ig-value" style="font-family:var(--mono);">${v.pqCode}</span>
+        <span class="ig-label">PQ Value</span><span class="ig-value">${v.pqValue}</span>
+        <span class="ig-label">Past Jobs with MAG</span><span class="ig-value">${v.prevJobs}</span>
+        <span class="ig-label">Rating</span><span class="ig-value" style="color:var(--gold);">${v.rating}/5.0</span>
+        <span class="ig-label">Data Source</span><span class="ig-value" style="color:var(--g);">SharePoint VendorMaster + Oracle ERP</span>
+        <span class="ig-label">Last Synced</span><span class="ig-value">31 Mar 2026 09:45 AM</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="showToast('info','SharePoint','Opening vendor file in SharePoint/VendorMaster/${v.pqCode}…')">📄 SharePoint Profile</button>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('info','MS Teams','Opening vendor discussion in #vendor-management…')">💬 Teams Thread</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('info','Oracle','Viewing ${v.name} in Oracle ERP supplier module…')">🔗 Oracle ERP</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('info','Audit','Loading vendor audit history…')">📋 Audit Trail</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-vendor-detail')">Close</button></div>
+  </div>`;
+  existing.classList.add('open');
+}
+
+function exportPRDetail(id){
+  const pr = PRs.find(p=>p.id===id);
+  if(!pr) return;
+  const csv = `PR Number,Title,Project,Package,Requester,Value (AED),Status,Submitted,SLA\n"${pr.id}","${pr.title}","${pr.project}","${pr.pkg}","${pr.requester}",${pr.value},"${pr.status}","${pr.date}","${pr.sla}"`;
+  downloadCSV(csv, `${pr.id}_detail.csv`);
+  showToast('success','Exported',`${pr.id} detail exported as CSV.`);
+}
+
+function submitException(){
+  closeModal('modal-exception');
+  showToast('warning','Exception Submitted','Exception request for RFQ-2026-0034 submitted. Requires: Proc Manager + Finance + GM approval. SLA: 3 days. Teams notification sent to #procurement-approvals.');
+}
+
+function saveBid(){
+  closeModal('modal-add-bid');
+  showToast('success','Quote Saved','3rd quotation entered. 3-quote rule now satisfied. Proceeding to evaluation is now allowed. SharePoint document updated.');
+  const banner = document.querySelector('.compliance-banner');
+  if(banner){
+    banner.classList.remove('cb-block');banner.classList.add('cb-ok');
+    banner.innerHTML=`<div class="cb-icon">✅</div><div><div class="cb-title">3-Quotation Rule Satisfied</div><div class="cb-msg">3 valid quotes now received. You may proceed to evaluation and award.</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-family:var(--serif);font-size:2rem;color:var(--g);">3<span style="font-size:1rem;color:var(--t4);">/3</span></div><div style="font-size:10px;color:var(--t4);">Valid Quotes</div></div>`;
+  }
+}
+
+function switchProject(name){
+  state.currentProject=name;
+  document.querySelector('.tb-project-name').textContent=name;
+  closeModal('modal-project');
+  showToast('success','Project Switched',`Now viewing: ${name}`);
+}
+
+// ── Toast System ────────────────────────────
+function showToast(type, title, msg, duration=4000) {
+  const icons = {success:'✅',error:'🚫',warning:'⚠️',info:'ℹ️'};
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<div class="toast-icon">${icons[type]}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><div onclick="this.parentElement.remove()" style="cursor:pointer;color:var(--t4);font-size:12px;padding:2px 4px;">✕</div>`;
+  container.appendChild(toast);
+  setTimeout(()=>{toast.style.opacity='0';toast.style.transition='opacity 0.3s';setTimeout(()=>toast.remove(),300);},duration);
+}
+
+// ── Export Functions ──────────────────────────
+function downloadCSV(csvContent, filename) {
+  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+
+function exportPRsCSV() {
+  const header = 'PR Number,Title,Project,Package,Requester,Value (AED),Status,Submitted,SLA';
+  const rows = PRs.map(pr => `"${pr.id}","${pr.title}","${pr.project}","${pr.pkg}","${pr.requester}",${pr.value},"${pr.status}","${pr.date}","${pr.sla}"`);
+  downloadCSV([header,...rows].join('\n'), 'MAG-VPD_Purchase_Requisitions_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('success','Export Complete','Purchase Requisitions exported as CSV. Source: SharePoint + Oracle ERP.');
+}
+
+function exportRFQsCSV() {
+  const header = 'RFQ Number,Package,Vendors Invited,Bids Received,Valid Quotes,Compliance,Deadline,Status';
+  const rows = RFQs.map(r => `"${r.id}","${r.pkg}",${r.invited},${r.received},${r.valid},"${r.compliance}","${r.deadline}","${r.status}"`);
+  downloadCSV([header,...rows].join('\n'), 'MAG-VPD_RFQs_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('success','Export Complete','RFQ list exported as CSV. Source: SharePoint RFQ Library.');
+}
+
+function exportBidsCSV() {
+  const header = 'Line Item,Unit,Qty,Gulf Stone Trading (AED),Emirates Marble LLC (AED),Stone Kingdom FZCO (AED)';
+  const rows = [
+    '"Calacatta Oro 600x600","m2",1200,582000,624000,612000',
+    '"Travertine Wall Cladding","m2",800,336000,356000,328000',
+    '"Marble Skirting 100mm","lm",2400,204000,187200,196800',
+    '"Supply & Fix Labour","m2",2000,360000,390000,350000',
+    '"TOTAL","","",1482000,1557200,1486800'
+  ];
+  downloadCSV([header,...rows].join('\n'), 'MAG-VPD_Bid_Comparison_RFQ-2026-0031_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('success','Export Complete','Bid comparison exported as CSV. Source: SharePoint BidEvaluation library.');
+}
+
+function exportAuditCSV() {
+  const header = 'Event Type,Entity,User,Role,Time,Description';
+  const rows = AUDIT_EVENTS.map(e => `"${e.type}","${e.entity}","${e.user}","${e.role}","${e.time}","${e.desc.replace(/"/g,'""')}"`);
+  downloadCSV([header,...rows].join('\n'), 'MAG-VPD_Audit_Log_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('success','Export Complete','Audit log exported as CSV. Immutable hash-chained records preserved.');
+}
+
+function exportVendorsCSV() {
+  const header = 'Vendor ID,Name,Category,PQ Code,Rating,PQ Value,Past Jobs,Tags,Active';
+  const rows = VENDORS.map(v => `"${v.id}","${v.name}","${v.cat}","${v.pqCode}",${v.rating},"${v.pqValue}",${v.prevJobs},"${v.tags.join('; ')}",${v.active}`);
+  downloadCSV([header,...rows].join('\n'), 'MAG-VPD_Vendor_Master_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('success','Export Complete','Vendor master exported as CSV. Source: SharePoint VendorMaster + Oracle ERP.');
+}
+
+function exportDashboardPDF() {
+  // Generate an HTML-to-print version
+  const printWindow = window.open('','_blank','width=900,height=700');
+  const kpis = [{label:'Active PRs',value:'24',sub:'Across 3 projects'},{label:'Open RFQs',value:'11',sub:'4 closing this week'},{label:'Committed Spend',value:'AED 47.2M',sub:'YTD 2026'},{label:'Pending Approvals',value:'5',sub:'2 overdue SLA'}];
+  printWindow.document.write(`<!DOCTYPE html><html><head><title>MAG-VPD Executive Dashboard Report</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#222;}h1{font-size:22px;border-bottom:2px solid #C0272D;padding-bottom:8px;}h2{font-size:16px;margin-top:24px;color:#C0272D;}.kpi-row{display:flex;gap:16px;margin:16px 0;}.kpi{flex:1;border:1px solid #ddd;border-radius:6px;padding:16px;}.kpi-val{font-size:28px;font-weight:bold;}.kpi-sub{font-size:12px;color:#888;margin-top:4px;}table{width:100%;border-collapse:collapse;margin-top:12px;}th,td{border:1px solid #ddd;padding:8px 10px;text-align:left;font-size:12px;}th{background:#f5f5f5;font-weight:600;}.footer{margin-top:40px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#999;display:flex;justify-content:space-between;}</style></head><body>
+  <h1>MAG-VPD Executive Dashboard Report</h1>
+  <p style="font-size:12px;color:#666;">Keturah Reserve Phase 2 · Generated: ${new Date().toLocaleString()} · Data Source: SharePoint + MS Teams + Oracle ERP</p>
+  <div class="kpi-row">${kpis.map(k=>`<div class="kpi"><div style="font-size:10px;text-transform:uppercase;color:#888;letter-spacing:1px;">${k.label}</div><div class="kpi-val">${k.value}</div><div class="kpi-sub">${k.sub}</div></div>`).join('')}</div>
+  <h2>Purchase Requisitions</h2>
+  <table><thead><tr><th>PR#</th><th>Title</th><th>Project</th><th>Requester</th><th>Value (AED)</th><th>Status</th><th>Date</th></tr></thead><tbody>${PRs.map(p=>`<tr><td>${p.id}</td><td>${p.title}</td><td>${p.project}</td><td>${p.requester}</td><td>${Number(p.value).toLocaleString()}</td><td>${p.status}</td><td>${p.date}</td></tr>`).join('')}</tbody></table>
+  <h2>Active RFQs</h2>
+  <table><thead><tr><th>RFQ#</th><th>Package</th><th>Invited</th><th>Received</th><th>Compliance</th><th>Deadline</th><th>Status</th></tr></thead><tbody>${RFQs.map(r=>`<tr><td>${r.id}</td><td>${r.pkg}</td><td>${r.invited}</td><td>${r.received}</td><td>${r.compliance}</td><td>${r.deadline}</td><td>${r.status}</td></tr>`).join('')}</tbody></table>
+  <h2>Recent Audit Events</h2>
+  <table><thead><tr><th>Event</th><th>Entity</th><th>User</th><th>Time</th><th>Description</th></tr></thead><tbody>${AUDIT_EVENTS.slice(0,5).map(e=>`<tr><td>${e.type}</td><td>${e.entity}</td><td>${e.user}</td><td>${e.time}</td><td>${e.desc.substring(0,100)}…</td></tr>`).join('')}</tbody></table>
+  <div class="footer"><span>MAG-VPD v2.4.1 · Virtual Procurement Department</span><span>Prepared by: Jahangir Khan, Procurement Manager</span><span>Data Sources: SharePoint, MS Teams, Oracle ERP</span></div>
+  </body></html>`);
+  printWindow.document.close();
+  setTimeout(()=>{printWindow.print();},500);
+  showToast('success','PDF Report','Dashboard report opened for print/PDF. Use "Save as PDF" in the print dialog.');
+}
+
+function exportReportPDF(){
+  exportDashboardPDF();
+}
+
+// ── Init all renders ─────────────────────────
+window.addEventListener('DOMContentLoaded', ()=>{
+  renderPRTable();
+  renderRFQTable();
+  renderApprovals();
+  renderVendors();
+  renderProjects();
+  renderAudit();
+  renderSubmittals();
+  renderReports();
+  renderSpendChart();
+  // Set today's date on PR form
+  const dateEl = document.getElementById('pr-date');
+  if(dateEl) dateEl.value = '2026-04-15';
+  // Simulate auto-save
+  setTimeout(()=>{const el=document.getElementById('draft-status');if(el)el.textContent='✓ Saved as draft';},1500);
+});
+</script>
+</body>
+</html>
